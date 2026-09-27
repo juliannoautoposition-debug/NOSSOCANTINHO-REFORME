@@ -1,0 +1,2547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Nosso Cantinho</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        glass: {
+                            base: 'rgba(255, 255, 255, 0.05)',
+                            light: 'rgba(255, 255, 255, 0.1)',
+                            border: 'rgba(255, 255, 255, 0.15)',
+                            glow: 'rgba(255, 255, 255, 0.3)'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdn.tailwindcss.com">
+    <link rel="preconnect" href="https://unpkg.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        body {
+            background-color: #020617; /* Slate 950 */
+            color: #ffffff;
+            -webkit-tap-highlight-color: transparent;
+            overflow: hidden;
+            margin: 0;
+            padding: 0;
+            width: 100vw;
+            height: 100vh;
+            height: 100dvh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #app-container {
+            width: 100vw;
+            height: 100vh;
+            height: 100dvh;
+            max-width: 100%;
+        }
+
+        @media (min-width: 640px) {
+            #app-container {
+                max-width: 28rem; /* sm:max-w-md */
+                height: 850px;
+                border-radius: 40px;
+            }
+        }
+
+        /* Hide Scrollbar */
+        ::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
+        button, [role="button"] { touch-action: manipulation; }
+
+        /* Background Animated Blobs */
+        .blob-container {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: -1;
+            overflow: hidden;
+            pointer-events: none;
+        }
+
+        .blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(90px);
+            opacity: 0.7;
+            animation: moveBlob 25s infinite alternate cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .blob-1 {
+            top: -10%; left: -10%; width: 50vw; height: 50vw; min-width: 300px; min-height: 300px;
+            background: #db2777; /* Pink 600 */
+        }
+
+        .blob-2 {
+            bottom: -20%; right: -10%; width: 60vw; height: 60vw; min-width: 400px; min-height: 400px;
+            background: #7e22ce; /* Purple 700 */
+            animation-delay: -5s;
+            animation-duration: 30s;
+        }
+
+        .blob-3 {
+            top: 30%; left: 40%; width: 40vw; height: 40vw; min-width: 250px; min-height: 250px;
+            background: #4338ca; /* Indigo 700 */
+            animation-delay: -12s;
+            animation-duration: 20s;
+        }
+
+        @keyframes moveBlob {
+            0% { transform: translate3d(0, 0, 0) scale(1) rotate(0deg); }
+            33% { transform: translate3d(10vw, -10vh, 0) scale(1.1) rotate(45deg); }
+            66% { transform: translate3d(-10vw, 15vh, 0) scale(0.9) rotate(-30deg); }
+            100% { transform: translate3d(5vw, 5vh, 0) scale(1.05) rotate(15deg); }
+        }
+
+        /* Performance: preserve the exact visual design while reducing avoidable layer work.
+           The browser/WebView will present CSS animations at the display refresh rate (including 120Hz when supported). */
+        .blob,
+        .recording-pulse::before,
+        .floating-reaction {
+            will-change: transform;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+        }
+
+        .floating-reaction {
+            will-change: transform, opacity;
+        }
+
+        /* Liquid Glass Base Utilities */
+        .liquid-glass {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.01) 100%);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+
+        .liquid-glass-heavy {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.05) 100%);
+            backdrop-filter: blur(32px);
+            -webkit-backdrop-filter: blur(32px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
+
+        /* Long text safety */
+        .safe-text {
+            min-width: 0;
+            max-width: 100%;
+            overflow-wrap: anywhere;
+            word-break: break-word;
+        }
+
+        /* Transitions */
+        .screen-transition { transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.16, 1, 0.3, 1); will-change: opacity, transform; }
+        .screen-hidden { opacity: 0; pointer-events: none; position: absolute; inset: 0; transform: scale(0.95); display: none !important; }
+        .screen-active { opacity: 1; pointer-events: auto; position: absolute; inset: 0; transform: scale(1); display: flex !important; flex-direction: column; }
+
+        /* Mic pulse animation */
+        @keyframes pulse-ring {
+            0% { transform: scale(0.8); opacity: 0.5; }
+            100% { transform: scale(2); opacity: 0; }
+        }
+        .recording-pulse::before {
+            content: '';
+            position: absolute;
+            left: 0; top: 0; right: 0; bottom: 0;
+            border-radius: 50%;
+            background-color: #ef4444;
+            animation: pulse-ring 1.5s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+            z-index: -1;
+        }
+
+        /* Reaction Picker Popover */
+        .reaction-picker {
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            transform-origin: bottom center;
+            transform: scale(0.8) translateY(10px);
+            opacity: 0;
+            pointer-events: none;
+        }
+        .reaction-picker.show {
+            transform: scale(1) translateY(0);
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .reaction-picker-centered {
+            left: 50%;
+            transform: translateX(-50%) scale(0.8) translateY(10px);
+        }
+
+        .reaction-picker-centered.show {
+            transform: translateX(-50%) scale(1) translateY(0);
+        }
+
+        .floating-reaction {
+            position: absolute;
+            left: 50%;
+            bottom: 52%;
+            transform: translate(-50%, 0) scale(0.7);
+            font-size: 3.2rem;
+            line-height: 1;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 30;
+            filter: drop-shadow(0 8px 16px rgba(0,0,0,.45));
+            animation: floatReaction 1.15s ease-out forwards;
+        }
+
+        @keyframes floatReaction {
+            0% { opacity: 0; transform: translate3d(-50%, 20px, 0) scale(0.55); }
+            18% { opacity: 1; transform: translate3d(-50%, 0, 0) scale(1.05); }
+            55% { opacity: 1; transform: translate3d(-50%, -28px, 0) scale(1); }
+            100% { opacity: 0; transform: translate3d(-50%, -95px, 0) scale(0.85); }
+        }
+
+        img { -webkit-touch-callout: none; }
+
+        /* Mobile specific adjustments */
+        @media (max-width: 639px) {
+            html, body {
+                width: 100%;
+                min-width: 100%;
+                height: 100%;
+                min-height: 100%;
+                margin: 0;
+                padding: 0;
+            }
+
+            body {
+                position: fixed;
+                inset: 0;
+                width: 100%;
+                height: 100dvh !important;
+                min-height: 100dvh !important;
+                max-height: 100dvh !important;
+                display: block;
+                overflow: hidden;
+            }
+
+            #app-container {
+                position: fixed;
+                inset: 0;
+                width: 100%;
+                max-width: 100%;
+                height: 100dvh !important;
+                min-height: 100dvh !important;
+                max-height: 100dvh !important;
+                margin: 0;
+                border-radius: 0;
+            }
+
+            #main-app,
+            #screens-container {
+                min-height: 0;
+            }
+
+            #screen-home {
+                padding: calc(env(safe-area-inset-top, 0px) + 78px) 16px calc(env(safe-area-inset-bottom, 0px) + 96px) !important;
+                gap: 14px !important;
+            }
+
+            #hero-widget {
+                height: clamp(150px, 22vh, 178px) !important;
+            }
+
+            #recent-highlight-card {
+                padding: 16px !important;
+                margin-bottom: 8px !important;
+            }
+
+            #dynamic-grid {
+                gap: 10px !important;
+            }
+
+            #dynamic-grid > button {
+                min-width: 0;
+                padding: 14px !important;
+                border-radius: 22px !important;
+                gap: 10px !important;
+            }
+
+            #dynamic-grid > button {
+                min-width: 0;
+                width: 100%;
+                overflow: hidden;
+            }
+
+            #dynamic-grid > button > div:last-child {
+                min-width: 0;
+                width: 100%;
+            }
+
+            #dynamic-grid > button p {
+                min-width: 0;
+                max-width: 100%;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                overflow-wrap: anywhere;
+                word-break: break-word;
+            }
+
+            #screen-chat,
+            #screen-photos,
+            #screen-desafios,
+            #screen-desejos,
+            #screen-datas,
+            #screen-planos,
+            #screen-quiz {
+                padding-top: calc(env(safe-area-inset-top, 0px) + 78px) !important;
+                padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 96px) !important;
+            }
+
+            #screen-settings {
+                padding-top: calc(env(safe-area-inset-top, 0px) + 86px) !important;
+                padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 96px) !important;
+            }
+
+            #bottom-nav {
+                padding: 8px 10px calc(8px + env(safe-area-inset-bottom, 0px)) !important;
+            }
+
+            #bottom-nav > div {
+                height: 58px;
+                border-radius: 26px;
+            }
+
+            #custom-modal {
+                padding: 16px !important;
+            }
+
+            #modal-content-box {
+                max-height: calc(100dvh - 32px);
+                overflow-y: auto;
+            }
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen font-sans selection:bg-pink-500/30">
+
+    <!-- Background Effect -->
+    <div class="blob-container">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+    </div>
+
+    <div id="app-container" class="w-full h-[100dvh] sm:max-w-md relative overflow-hidden flex flex-col sm:h-[850px] sm:rounded-[40px] liquid-glass">
+        
+        <div id="main-app" class="flex-1 flex flex-col w-full h-full screen-active relative z-10">
+            
+            <!-- Glass Header -->
+            <header class="absolute top-0 left-0 right-0 w-full z-40 pt-safe liquid-glass rounded-b-3xl border-t-0 border-x-0">
+                <div class="flex items-center justify-between px-6 h-16 sm:mt-2">
+                    <div class="flex items-center gap-3">
+                        <button id="back-btn" onclick="switchTab('home')" class="hidden w-10 h-10 rounded-full liquid-glass items-center justify-center active:scale-90 transition-transform">
+                            <i data-lucide="chevron-left" class="w-5 h-5 text-white"></i>
+                        </button>
+                        <h2 id="header-title" class="text-xl font-semibold tracking-tight">Home</h2>
+                    </div>
+                    <div class="flex gap-3">
+                        <button class="w-10 h-10 rounded-full liquid-glass flex items-center justify-center active:scale-90 transition-transform">
+                            <i data-lucide="bell" class="w-4 h-4 text-white"></i>
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <main class="flex-1 overflow-hidden relative w-full h-full" id="screens-container">
+                
+                <!-- Home Screen -->
+                <div id="screen-home" class="screen-active p-5 pt-[90px] pb-[120px] overflow-y-auto no-scrollbar flex flex-col gap-5">
+                    <!-- Hero Widget -->
+                    <div id="hero-widget" onclick="promptChangeCoverPhoto()" class="relative w-full h-48 sm:h-56 rounded-[28px] overflow-hidden liquid-glass-heavy flex-shrink-0 group p-1 shadow-xl cursor-pointer active:scale-95 transition-all">
+                        <div class="absolute inset-0 z-20 flex flex-col justify-end p-5 bg-gradient-to-t from-black/80 via-black/20 to-transparent rounded-[24px]">
+                            <img id="hero-cover-img" src="https://placehold.co/600x400/020617/FFF?text=Us" alt="Cover" class="absolute inset-0 w-full h-full object-cover rounded-[24px] opacity-80 mix-blend-luminosity -z-10">
+                            <div onclick="event.stopPropagation(); promptChangeStartDate();" class="liquid-glass inline-flex px-3 py-1 rounded-full w-max mb-1.5 items-center gap-1.5 hover:bg-white/20 transition-colors cursor-pointer">
+                                <i data-lucide="sparkles" class="w-3 h-3 text-pink-300"></i>
+                                <span id="hero-subtitle" class="text-[11px] font-semibold text-pink-300">Aperte para mudar</span>
+                            </div>
+                            <h3 id="hero-counter-title" class="text-2xl sm:text-3xl font-bold tracking-tight text-white drop-shadow-md pointer-events-none">Calculando...</h3>
+                        </div>
+                    </div>
+
+                    <!-- Highlight Card -->
+                    <div id="recent-highlight-card" onclick="switchTab('desafios')" class="liquid-glass-heavy p-5 rounded-[28px] flex items-center gap-4 active:scale-95 transition-all group flex-shrink-0 cursor-pointer shadow-xl border border-orange-400/30 relative overflow-hidden z-20 mb-4 col-span-2">
+                        <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-orange-500/20 rounded-full blur-xl pointer-events-none"></div>
+                        <div id="recent-icon-wrapper" class="w-12 h-12 rounded-full bg-orange-500/30 border border-orange-400/40 flex items-center justify-center group-hover:scale-110 transition-transform flex-shrink-0 pointer-events-none">
+                            <i id="recent-icon" data-lucide="flame" class="w-6 h-6 text-orange-300"></i>
+                        </div>
+                        <div class="text-left flex-1 min-w-0 pointer-events-none">
+                            <p id="recent-title" class="font-bold text-base text-white truncate">Desafios de Casal</p>
+                            <p id="recent-desc" class="text-xs text-white/60 truncate mt-0.5">Explore missões românticas e quentes</p>
+                        </div>
+                        <i data-lucide="chevron-right" class="w-5 h-5 text-white/40 flex-shrink-0 pointer-events-none"></i>
+                    </div>
+
+                    <!-- Action Grid -->
+                    <div id="dynamic-grid" class="grid grid-cols-2 gap-3.5"></div>
+                </div>
+
+                <!-- Chat Screen -->
+                <div id="screen-chat" class="screen-hidden flex flex-col h-full absolute inset-0 pt-[80px]">
+                    <div id="chat-messages" class="flex-1 overflow-y-auto no-scrollbar p-5 flex flex-col gap-5 pb-28">
+                        <div class="text-center text-xs font-medium text-white/40 my-2 liquid-glass px-3 py-1 rounded-full w-max mx-auto">End-to-End Encrypted Space</div>
+                    </div>
+                    
+                    <div class="absolute bottom-0 left-0 w-full p-4 pb-safe z-20">
+                        <div class="liquid-glass-heavy rounded-[32px] p-2 flex items-end gap-2 shadow-2xl">
+                            <div class="relative shrink-0">
+                                <button id="chat-plus-btn" type="button" class="p-3 rounded-full hover:bg-white/10 text-white/70 transition-colors active:scale-90" aria-label="Adicionar conteúdo">
+                                    <i data-lucide="plus" class="w-5 h-5"></i>
+                                </button>
+                                <div id="chat-attach-menu" class="hidden absolute bottom-16 left-0 liquid-glass-heavy rounded-2xl p-2 shadow-2xl min-w-[170px] z-50">
+                                    <button id="chat-photo-attach" type="button" class="w-full flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-white/10 text-sm font-medium text-left">
+                                        <i data-lucide="image" class="w-5 h-5 text-pink-300"></i> Foto/Galeria
+                                    </button>
+                                    <button id="chat-camera-attach" type="button" class="w-full flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-white/10 text-sm font-medium text-left">
+                                        <i data-lucide="camera" class="w-5 h-5 text-blue-300"></i> Câmera
+                                    </button>
+                                    <button id="chat-file-attach" type="button" class="w-full flex items-center gap-3 px-3 py-3 rounded-xl hover:bg-white/10 text-sm font-medium text-left">
+                                        <i data-lucide="paperclip" class="w-5 h-5 text-white/70"></i> Arquivo
+                                    </button>
+                                </div>
+                                <input id="chat-file-input" type="file" class="hidden" accept="*/*">
+                            </div>
+                            <textarea id="chat-input" rows="1" placeholder="Whisper something..." class="flex-1 bg-transparent border-none outline-none resize-none py-3 px-2 text-[15px] max-h-24 no-scrollbar text-white placeholder-white/40 font-medium"></textarea>
+                            <button id="chat-send-btn" class="p-3 rounded-full bg-indigo-500 text-white hidden active:scale-90 transition-transform shadow-[0_0_15px_rgba(99,102,241,0.5)]">
+                                <i data-lucide="arrow-up" class="w-5 h-5"></i>
+                            </button>
+                            <button id="chat-mic-btn" class="p-3 rounded-full hover:bg-red-500/20 text-white/70 hover:text-red-400 transition-colors relative">
+                                <i data-lucide="mic" class="w-5 h-5 relative z-10 pointer-events-none"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Photos Screen -->
+                <div id="screen-photos" class="screen-hidden p-4 pt-[90px] h-full absolute inset-0 overflow-y-auto no-scrollbar pb-28">
+                    <div id="photo-grid" class="grid grid-cols-2 gap-3 w-full"></div>
+                    <button id="add-photo-btn" class="fixed bottom-[110px] right-6 sm:absolute sm:bottom-24 sm:right-6 w-16 h-16 liquid-glass-heavy rounded-full shadow-[0_4px_30px_rgba(219,39,119,0.5)] flex items-center justify-center text-white active:scale-90 transition-transform z-30 group border-pink-400/50">
+                        <div class="absolute inset-0 rounded-full bg-gradient-to-tr from-pink-500 to-purple-600 opacity-60 group-hover:opacity-100 transition-opacity"></div>
+                        <i data-lucide="plus" class="w-7 h-7 relative z-10 drop-shadow-md"></i>
+                    </button>
+                </div>
+
+                <!-- Challenges Screen -->
+                <div id="screen-desafios" class="screen-hidden absolute inset-0 pt-[90px] pb-28">
+                    
+                    <!-- Main View -->
+                    <div id="desafios-main" class="w-full h-full p-5 overflow-y-auto no-scrollbar flex flex-col gap-6">
+                        <!-- Week Challenge -->
+                        <div class="liquid-glass-heavy rounded-[32px] p-6 relative overflow-hidden group shadow-2xl shrink-0 min-h-fit">
+                            <div class="absolute inset-0 bg-gradient-to-br from-orange-500/20 to-red-600/20 z-0"></div>
+                            <div class="relative z-10 flex flex-col items-center text-center gap-3 min-w-0 w-full">
+                                <div class="w-14 h-14 rounded-full liquid-glass flex items-center justify-center mb-2 shadow-inner border border-white/10">
+                                    <i data-lucide="award" class="w-7 h-7 text-orange-400 drop-shadow-md"></i>
+                                </div>
+                                <span class="text-xs font-semibold text-orange-300 uppercase tracking-widest">Desafio da Semana</span>
+                                <h3 id="week-challenge-title" class="text-xl font-bold text-white leading-tight min-w-0 max-w-full w-full safe-text">Nenhum desafio definido</h3>
+                                <p id="week-challenge-cat" class="text-xs text-white/60 font-medium">Acesse uma categoria e marque um desafio.</p>
+                                <div class="mt-4 w-full shrink-0">
+                                    <button id="week-challenge-action" onclick="promptCompleteWeekChallenge()" class="w-full py-3.5 liquid-glass border border-white/10 rounded-2xl font-semibold active:scale-95 transition-transform hover:bg-white/10 text-sm flex items-center justify-center gap-2">
+                                        <i data-lucide="check-circle-2" class="w-5 h-5"></i> Concluir Desafio
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h4 class="text-white/60 font-semibold mb-4 pl-2 text-xs uppercase tracking-widest">Categorias</h4>
+                            <div class="flex flex-col gap-3">
+                                <div id="category-romanticos" role="button" tabindex="0" onclick="window.openCategoryView('romanticos','Românticos',{bg:'bg-pink-500/20',border:'border-pink-500/30',text:'text-pink-400'},'heart')" class="liquid-glass p-4 rounded-[24px] flex items-center justify-between active:scale-[0.98] transition-all cursor-pointer hover:bg-white/10 border-l-2 border-l-pink-400">
+                                    <div class="flex items-center gap-4">
+                                        <div class="w-12 h-12 rounded-full bg-pink-500/20 flex items-center justify-center border border-pink-500/30">
+                                            <i data-lucide="heart" class="w-6 h-6 text-pink-400"></i>
+                                        </div>
+                                        <div>
+                                            <p class="font-semibold text-white text-[15px]">Românticos</p>
+                                            <p id="count-romanticos" class="text-xs text-white/50">0 desafios não concluídos</p>
+                                        </div>
+                                    </div>
+                                    <i data-lucide="chevron-right" class="w-5 h-5 text-white/30"></i>
+                                </div>
+
+                                <div id="category-divertidos" role="button" tabindex="0" onclick="window.openCategoryView('divertidos','Divertidos',{bg:'bg-purple-500/20',border:'border-purple-500/30',text:'text-purple-400'},'gamepad-2')" class="liquid-glass p-4 rounded-[24px] flex items-center justify-between active:scale-[0.98] transition-all cursor-pointer hover:bg-white/10 border-l-2 border-l-purple-400">
+                                    <div class="flex items-center gap-4">
+                                        <div class="w-12 h-12 rounded-full bg-purple-500/20 flex items-center justify-center border border-purple-500/30">
+                                            <i data-lucide="gamepad-2" class="w-6 h-6 text-purple-400"></i>
+                                        </div>
+                                        <div>
+                                            <p class="font-semibold text-white text-[15px]">Divertidos</p>
+                                            <p id="count-divertidos" class="text-xs text-white/50">0 desafios não concluídos</p>
+                                        </div>
+                                    </div>
+                                    <i data-lucide="chevron-right" class="w-5 h-5 text-white/30"></i>
+                                </div>
+
+                                <div id="category-picantes" role="button" tabindex="0" onclick="window.openCategoryView('picantes','Picantes',{bg:'bg-red-500/20',border:'border-red-500/30',text:'text-red-400'},'flame')" class="liquid-glass p-4 rounded-[24px] flex items-center justify-between active:scale-[0.98] transition-all cursor-pointer hover:bg-white/10 border-l-2 border-l-red-400">
+                                    <div class="flex items-center gap-4">
+                                        <div class="w-12 h-12 rounded-full bg-red-500/20 flex items-center justify-center border border-red-500/30">
+                                            <i data-lucide="flame" class="w-6 h-6 text-red-400"></i>
+                                        </div>
+                                        <div>
+                                            <p class="font-semibold text-white text-[15px]">Picantes</p>
+                                            <p id="count-picantes" class="text-xs text-white/50">0 desafios não concluídos</p>
+                                        </div>
+                                    </div>
+                                    <i data-lucide="chevron-right" class="w-5 h-5 text-white/30"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Category View Sub-screen -->
+                    <div id="desafios-category" class="hidden w-full h-full p-5 overflow-y-auto no-scrollbar flex-col gap-4">
+                        <div class="flex items-center gap-3 mb-2">
+                            <button onclick="closeCategoryView()" class="w-10 h-10 rounded-full liquid-glass flex items-center justify-center active:scale-90 transition-transform">
+                                <i data-lucide="arrow-left" class="w-5 h-5 text-white"></i>
+                            </button>
+                            <div id="cat-view-icon-wrapper"></div>
+                            <h3 id="cat-view-title" class="text-xl font-bold tracking-tight">Categoria</h3>
+                        </div>
+
+                        <div id="category-challenges-list" class="flex flex-col gap-3 flex-1">
+                            <!-- Challenges populated here dynamically -->
+                        </div>
+
+                        <button onclick="promptAddChallenge()" class="mt-2 w-full py-3.5 liquid-glass-heavy border border-white/20 rounded-2xl font-semibold active:scale-95 transition-transform hover:bg-white/10 text-sm flex items-center justify-center gap-2 shadow-xl shrink-0">
+                            <i data-lucide="plus" class="w-5 h-5"></i> Adicionar Desafio
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Wishes Screen -->
+                <div id="screen-desejos" class="screen-hidden p-5 pt-[90px] h-full absolute inset-0 overflow-y-auto no-scrollbar pb-28 flex flex-col gap-4">
+                    <div class="liquid-glass p-6 rounded-[32px] text-center shadow-2xl flex flex-col items-center">
+                        <div class="w-16 h-16 rounded-full liquid-glass flex items-center justify-center mb-4 border border-yellow-400/30 shadow-inner">
+                            <i data-lucide="star" class="w-8 h-8 text-yellow-400 drop-shadow-md"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold mb-2">Desejos</h3>
+                        <p class="text-sm text-white/60 mb-6 font-medium">Coisas que queremos realizar juntos.</p>
+                        <button onclick="promptAddWish()" class="w-full py-3.5 liquid-glass border border-white/10 rounded-2xl font-semibold active:scale-95 transition-transform hover:bg-white/10 text-sm flex items-center justify-center gap-2">
+                            <i data-lucide="plus" class="w-5 h-5"></i> Adicionar Desejo
+                        </button>
+                    </div>
+                    <div id="wishes-list" class="flex flex-col gap-3"></div>
+                </div>
+
+                <!-- Dates Screen -->
+                <div id="screen-datas" class="screen-hidden p-5 pt-[90px] h-full absolute inset-0 overflow-y-auto no-scrollbar pb-28 flex flex-col gap-4">
+                    <div class="liquid-glass p-6 rounded-[32px] text-center shadow-2xl flex flex-col items-center">
+                        <div class="w-16 h-16 rounded-full liquid-glass flex items-center justify-center mb-4 border border-teal-400/30 shadow-inner">
+                            <i data-lucide="calendar-heart" class="w-8 h-8 text-teal-400 drop-shadow-md"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold mb-2">Datas Importantes</h3>
+                        <p class="text-sm text-white/60 mb-6 font-medium">Dias que marcaram nossa história.</p>
+                        <button onclick="promptAddDate()" class="w-full py-3.5 liquid-glass border border-white/10 rounded-2xl font-semibold active:scale-95 transition-transform hover:bg-white/10 text-sm flex items-center justify-center gap-2">
+                            <i data-lucide="plus" class="w-5 h-5"></i> Adicionar Data
+                        </button>
+                    </div>
+                    <div id="dates-list" class="flex flex-col gap-3"></div>
+                </div>
+
+                <!-- Plans Screen -->
+                <div id="screen-planos" class="screen-hidden p-5 pt-[90px] h-full absolute inset-0 overflow-y-auto no-scrollbar pb-28 flex flex-col gap-4">
+                    <div class="liquid-glass p-6 rounded-[32px] text-center shadow-2xl flex flex-col items-center">
+                        <div class="w-16 h-16 rounded-full liquid-glass flex items-center justify-center mb-4 border border-green-400/30 shadow-inner">
+                            <i data-lucide="map" class="w-8 h-8 text-green-400 drop-shadow-md"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold mb-2">Nossos Planos</h3>
+                        <p class="text-sm text-white/60 mb-6 font-medium">O futuro maravilhoso que estamos construindo.</p>
+                        <button onclick="promptAddPlan()" class="w-full py-3.5 liquid-glass border border-white/10 rounded-2xl font-semibold active:scale-95 transition-transform hover:bg-white/10 text-sm flex items-center justify-center gap-2">
+                            <i data-lucide="plus" class="w-5 h-5"></i> Adicionar Plano
+                        </button>
+                    </div>
+                    <div id="plans-list" class="flex flex-col gap-3"></div>
+                </div>
+
+                <!-- Quiz Screen -->
+                <div id="screen-quiz" class="screen-hidden p-5 pt-[90px] h-full absolute inset-0 overflow-y-auto no-scrollbar pb-28 flex flex-col gap-4">
+                    <div class="liquid-glass p-6 rounded-[32px] text-center shadow-2xl flex flex-col items-center">
+                        <div class="w-16 h-16 rounded-full liquid-glass flex items-center justify-center mb-4 border border-indigo-400/30 shadow-inner">
+                            <i data-lucide="help-circle" class="w-8 h-8 text-indigo-400 drop-shadow-md"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold mb-2">Quiz do Casal</h3>
+                        <p class="text-sm text-white/60 mb-6 font-medium">Quem conhece mais o outro? Testem seus conhecimentos!</p>
+                        <button onclick="showModal('Quiz do Casal', 'Perguntas interativas estarão disponíveis em breve!', false)" class="w-full py-3.5 liquid-glass border border-white/10 rounded-2xl font-semibold active:scale-95 transition-transform hover:bg-white/10 text-sm">
+                            Iniciar Jogo
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Settings Screen -->
+                <div id="screen-settings" class="screen-hidden p-6 pt-[100px] h-full overflow-y-auto no-scrollbar">
+                    <div class="flex flex-col items-center mb-10">
+                        <div class="relative w-28 h-28 group cursor-pointer" onclick="openProfilePhotoMenu()">
+                            <div class="absolute inset-0 rounded-full bg-gradient-to-tr from-indigo-500 to-pink-500 animate-spin" style="animation-duration: 4s;"></div>
+                            <img id="profile-avatar-img" src="https://placehold.co/200x200/020617/FFF?text=Me" class="absolute inset-[3px] rounded-full object-cover z-10 border border-white/20 w-[calc(100%-6px)] h-[calc(100%-6px)]">
+                            <div class="absolute inset-0 rounded-full bg-black/40 z-20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                <i data-lucide="camera" class="w-7 h-7 text-white"></i>
+                            </div>
+                        </div>
+                        <h2 class="text-2xl font-bold mt-5 tracking-tight">Nosso Cantinho</h2>
+                        <p class="text-white/50 text-sm font-medium">Toque na foto para editar ou remover</p>
+                    </div>
+
+                    <div class="liquid-glass rounded-[28px] overflow-hidden mb-6 flex flex-col">
+                        <div onclick="promptChangeCoverPhoto()" class="px-5 py-4 flex items-center justify-between border-b border-white/5 active:bg-white/5 transition-colors cursor-pointer">
+                            <div class="flex items-center gap-4">
+                                <i data-lucide="image" class="w-5 h-5 text-pink-400"></i>
+                                <span class="font-medium">Alterar Foto de Capa & Perfil</span>
+                            </div>
+                            <i data-lucide="chevron-right" class="w-4 h-4 text-white/30"></i>
+                        </div>
+                        <div onclick="removeCoverPhoto()" class="px-5 py-4 flex items-center justify-between border-b border-white/5 active:bg-white/5 transition-colors cursor-pointer">
+                            <div class="flex items-center gap-4">
+                                <i data-lucide="trash-2" class="w-5 h-5 text-red-400"></i>
+                                <span class="font-medium text-red-400">Remover Foto de Capa / Perfil</span>
+                            </div>
+                            <i data-lucide="chevron-right" class="w-4 h-4 text-white/30"></i>
+                        </div>
+                        <div class="px-5 py-4 flex items-center justify-between border-b border-white/5 active:bg-white/5 transition-colors cursor-pointer">
+                            <div class="flex items-center gap-4">
+                                <i data-lucide="shield" class="w-5 h-5 text-indigo-400"></i>
+                                <span class="font-medium">Privacy & Security</span>
+                            </div>
+                            <i data-lucide="chevron-right" class="w-4 h-4 text-white/30"></i>
+                        </div>
+                        <div onclick="showCoupleCode()" class="px-5 py-4 flex items-center justify-between active:bg-white/5 transition-colors cursor-pointer">
+                            <div class="flex items-center gap-4 min-w-0">
+                                <i data-lucide="heart-handshake" class="w-5 h-5 text-pink-400 shrink-0"></i>
+                                <div class="min-w-0">
+                                    <span class="font-medium block">Código do casal</span>
+                                    <span id="couple-code-label" class="text-xs text-white/40 block mt-0.5 truncate">Não conectado</span>
+                                </div>
+                            </div>
+                            <i data-lucide="chevron-right" class="w-4 h-4 text-white/30 shrink-0"></i>
+                        </div>
+                    </div>
+                </div>
+
+            </main>
+
+            <!-- Bottom Navigation -->
+            <nav id="bottom-nav" class="absolute bottom-0 left-0 right-0 z-40 p-4 pb-safe bg-gradient-to-t from-black/80 via-black/40 to-transparent">
+                <div class="liquid-glass-heavy rounded-[32px] flex items-center justify-around h-16 px-2 shadow-2xl">
+                    <button onclick="switchTab('home')" class="nav-btn flex flex-col items-center justify-center w-12 gap-1 text-white transition-colors" data-tab="home">
+                        <i data-lucide="home" class="w-6 h-6 nav-icon fill-white/20"></i>
+                    </button>
+                    <button onclick="switchTab('chat')" class="nav-btn flex flex-col items-center justify-center w-12 gap-1 text-white/40 hover:text-white transition-colors" data-tab="chat">
+                        <i data-lucide="message-square" class="w-6 h-6 nav-icon"></i>
+                    </button>
+                    <button onclick="switchTab('desafios')" class="nav-btn flex flex-col items-center justify-center w-12 gap-1 text-white/40 hover:text-white transition-colors" data-tab="desafios">
+                        <i data-lucide="flame" class="w-6 h-6 nav-icon"></i>
+                    </button>
+                    <button onclick="switchTab('photos')" class="nav-btn flex flex-col items-center justify-center w-12 gap-1 text-white/40 hover:text-white transition-colors" data-tab="photos">
+                        <i data-lucide="grid" class="w-6 h-6 nav-icon"></i>
+                    </button>
+                    <button onclick="switchTab('settings')" class="nav-btn flex flex-col items-center justify-center w-12 gap-1 text-white/40 hover:text-white transition-colors" data-tab="settings">
+                        <i data-lucide="user" class="w-6 h-6 nav-icon"></i>
+                    </button>
+                </div>
+            </nav>
+            
+        </div>
+        
+        <!-- Custom Modal -->
+        <div id="custom-modal" class="hidden absolute inset-0 z-[100] flex items-center justify-center p-6 opacity-0 transition-opacity duration-300">
+            <div class="absolute inset-0 bg-black/40 backdrop-blur-md" id="modal-backdrop"></div>
+            <div class="liquid-glass-heavy rounded-[32px] w-full max-w-sm p-7 transform scale-95 transition-transform duration-300 shadow-2xl relative z-10" id="modal-content-box">
+                <h3 id="modal-title" class="text-2xl font-bold mb-2 tracking-tight">Title</h3>
+                <p id="modal-desc" class="text-white/60 text-sm mb-6 font-medium">Description</p>
+                <div id="modal-inputs" class="mb-6 hidden flex-col gap-4"></div>
+                <div class="flex gap-3 w-full">
+                    <button id="modal-cancel" class="flex-1 py-3.5 rounded-2xl liquid-glass text-white font-semibold active:scale-95 transition-transform">Cancel</button>
+                    <button id="modal-confirm" class="flex-1 py-3.5 rounded-2xl bg-white text-black font-semibold active:scale-95 transition-transform shadow-[0_0_20px_rgba(255,255,255,0.3)]">Confirm</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Fullscreen Photo Viewer -->
+        <div id="photo-viewer-modal" class="hidden fixed inset-0 z-[9999] bg-black flex items-center justify-center opacity-0 transition-opacity duration-300">
+            <div class="absolute inset-0 bg-black"></div>
+
+            <div id="photo-viewer-stage" class="absolute inset-0 flex items-center justify-center overflow-hidden">
+                <img id="photo-viewer-image" src="" alt="Memória em tela cheia" class="max-w-[94vw] max-h-[84vh] w-auto h-auto object-contain select-none rounded-2xl" draggable="false" decoding="async">
+            </div>
+
+            <div class="absolute top-0 left-0 right-0 p-5 z-20 flex items-center justify-between pointer-events-none">
+                <button id="photo-viewer-close" class="pointer-events-auto w-11 h-11 rounded-full bg-black/50 backdrop-blur-xl border border-white/15 flex items-center justify-center text-white active:scale-90 transition-transform shadow-xl">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+                <p id="photo-viewer-title" class="text-sm font-semibold text-white bg-black/45 backdrop-blur-xl border border-white/10 px-4 py-2 rounded-full">Nossa Memória</p>
+                <div class="w-11 h-11"></div>
+            </div>
+
+            <div class="absolute bottom-0 left-0 right-0 z-20 px-5 pb-6 pt-16 bg-gradient-to-t from-black/85 via-black/35 to-transparent pointer-events-none">
+                <p id="photo-viewer-caption" class="text-sm sm:text-base text-white/90 text-center font-medium drop-shadow-lg max-w-2xl mx-auto"></p>
+            </div>
+        </div>
+
+        <!-- WhatsApp Style Editor Modal -->
+        <div id="photo-editor-modal" class="hidden absolute inset-0 z-[150] bg-black/90 flex flex-col justify-between p-6 opacity-0 transition-opacity duration-300">
+            <div class="flex justify-between items-center z-10">
+                <button onclick="closePhotoEditor()" class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white active:scale-90 transition-transform">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+                <h3 class="text-lg font-bold text-white">Ajustar Imagem</h3>
+                <button onclick="saveEditedPhoto()" class="px-5 py-2.5 rounded-full bg-pink-600 text-white font-semibold text-sm active:scale-90 transition-transform shadow-lg">Salvar</button>
+            </div>
+
+            <div class="flex-1 flex flex-col items-center justify-center relative overflow-hidden my-4">
+                <div id="editor-canvas-container" class="relative max-w-full max-h-[50vh] overflow-hidden rounded-2xl shadow-2xl border border-white/20 bg-black">
+                    <canvas id="editor-canvas" class="block cursor-grab active:cursor-grabbing"></canvas>
+                </div>
+                <div class="flex gap-4 mt-6">
+                    <button onclick="adjustZoom(-0.1)" class="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center text-white active:scale-90 transition-transform"><i data-lucide="zoom-out" class="w-5 h-5"></i></button>
+                    <button onclick="adjustZoom(0.1)" class="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center text-white active:scale-90 transition-transform"><i data-lucide="zoom-in" class="w-5 h-5"></i></button>
+                    <button onclick="rotateEditorImage()" class="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center text-white active:scale-90 transition-transform"><i data-lucide="rotate-cw" class="w-5 h-5"></i></button>
+                </div>
+            </div>
+
+            <div class="flex flex-col gap-3 z-10">
+                <label class="text-xs text-white/60 font-semibold uppercase tracking-wider text-center">Zoom da Imagem</label>
+                <input id="zoom-range" type="range" min="0.5" max="3" step="0.05" value="1" class="w-full accent-pink-500 cursor-pointer">
+            </div>
+        </div>
+
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, where, updateDoc, setDoc, doc, deleteDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Initialize Icons
+        // Batch icon conversion to one animation frame when multiple UI sections update together.
+        let iconRenderFrame = 0;
+        function queueIconRender() {
+            if (iconRenderFrame) return;
+            iconRenderFrame = requestAnimationFrame(() => {
+                iconRenderFrame = 0;
+                if (window.lucide?.createIcons) window.lucide.createIcons();
+            });
+        }
+        queueIconRender();
+
+        // Firebase Configuration Setup
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
+            apiKey: "AIzaSyAc04sOSgo4j461uSijJ3dKMOhXmClMS_M",
+            authDomain: "nossocantinho-b1ac1.firebaseapp.com",
+            projectId: "nossocantinho-b1ac1",
+            storageBucket: "nossocantinho-b1ac1.firebasestorage.app",
+            messagingSenderId: "640849577601",
+            appId: "1:640849577601:web:c83874ac8970703ebfaf80"
+        };
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'nosso-cantinho-liquid';
+
+        let app, auth, db;
+        let currentUserId = localStorage.getItem('cantinho_user_id');
+        if (!currentUserId) {
+            currentUserId = 'user-' + Math.random().toString(36).substring(2, 8);
+            localStorage.setItem('cantinho_user_id', currentUserId);
+        }
+        let messagesUnsubscribe = null;
+        let photosUnsubscribe = null;
+        let isOfflineMode = false;
+        let coupleId = localStorage.getItem('cantinho_couple_id') || '';
+        let coupleCreatedHere = false;
+        let syncReady = false;
+        const syncUnsubscribers = [];
+        const remoteCache = {
+            mensagens: [],
+            fotos: [],
+            desejos: [],
+            datas: [],
+            planos: [],
+            desafios: []
+        };
+        let authReadyResolve;
+        const authReady = new Promise(resolve => { authReadyResolve = resolve; });
+
+        // --- Start Date & Cover Photo State Management ---
+        const DEFAULT_START_DATE = '2023-01-01';
+        const DEFAULT_COVER_URL = 'https://placehold.co/600x400/020617/FFF?text=Us';
+
+        const getStartDate = () => {
+            return localStorage.getItem('cantinho_start_date') || DEFAULT_START_DATE;
+        };
+
+        const setStartDate = (dateStr) => {
+            localStorage.setItem('cantinho_start_date', dateStr);
+            updateDaysCounter();
+            if (typeof syncSetConfig === 'function') syncSetConfig({ startDate: dateStr });
+        };
+
+        const getCoverUrl = () => {
+            return localStorage.getItem('cantinho_cover_url') || DEFAULT_COVER_URL;
+        };
+
+        const setCoverUrl = (url) => {
+            localStorage.setItem('cantinho_cover_url', url);
+            document.getElementById('hero-cover-img').src = url;
+            const profileAvatar = document.getElementById('profile-avatar-img');
+            if(profileAvatar) profileAvatar.src = url;
+            if (typeof syncSetConfig === 'function') syncSetConfig({ coverUrl: url });
+        };
+
+        window.removeCoverPhoto = () => {
+            localStorage.removeItem('cantinho_cover_url');
+            document.getElementById('hero-cover-img').src = DEFAULT_COVER_URL;
+            const profileAvatar = document.getElementById('profile-avatar-img');
+            if(profileAvatar) profileAvatar.src = DEFAULT_COVER_URL;
+            if (typeof syncSetConfig === 'function') syncSetConfig({ coverUrl: DEFAULT_COVER_URL });
+            showModal('Removido', 'A foto de capa e perfil foi redefinida para o padrão.', false);
+        };
+
+        window.openProfilePhotoMenu = () => {
+            showModal('Foto de Perfil & Capa', 'Deseja alterar ou remover a foto atual?', false);
+            const modalInputs = document.getElementById('modal-inputs');
+            modalInputs.innerHTML = '';
+            modalInputs.classList.remove('hidden');
+            modalInputs.classList.add('flex');
+            
+            const btnChange = document.createElement('button');
+            btnChange.className = 'w-full py-3 bg-pink-600 rounded-xl font-semibold text-white active:scale-95 transition-transform';
+            btnChange.innerText = 'Escolher Nova Foto / Ajustar';
+            btnChange.onclick = () => {
+                closeModal();
+                promptChangeCoverPhoto();
+            };
+
+            const btnRemove = document.createElement('button');
+            btnRemove.className = 'w-full py-3 bg-white/10 rounded-xl font-semibold text-red-400 active:scale-95 transition-transform';
+            btnRemove.innerText = 'Remover Foto';
+            btnRemove.onclick = () => {
+                closeModal();
+                removeCoverPhoto();
+            };
+
+            modalInputs.appendChild(btnChange);
+            modalInputs.appendChild(btnRemove);
+        };
+
+        const currentCover = getCoverUrl();
+        document.getElementById('hero-cover-img').src = currentCover;
+        const profileAvatarInit = document.getElementById('profile-avatar-img');
+        if(profileAvatarInit) profileAvatarInit.src = currentCover;
+
+        const updateDaysCounter = () => {
+            const startDateStr = getStartDate();
+            const start = new Date(startDateStr + 'T00:00:00');
+            const now = new Date();
+            
+            const diffTime = now - start;
+            const diffDays = Math.max(0, Math.floor(diffTime / (1000 * 60 * 60 * 24)));
+            
+            const counterTitle = document.getElementById('hero-counter-title');
+            if (counterTitle) {
+                counterTitle.innerText = `${diffDays.toLocaleString()} Dias`;
+            }
+        };
+
+        updateDaysCounter();
+        setInterval(updateDaysCounter, 60000);
+
+        window.promptChangeStartDate = () => {
+            showModal('Alterar Data de Início', 'Escolha a data em que o relacionamento começou:', false, () => {
+                const datePicker = document.getElementById('modal-date-picker');
+                const val = datePicker ? datePicker.value : null;
+                if(val) {
+                    setStartDate(val);
+                    showModal('Sucesso! ✨', 'Data de início atualizada com sucesso!', false);
+                } else {
+                    showModal('Atenção', 'Por favor, selecione uma data válida.', false);
+                }
+            });
+
+            const modalInputs = document.getElementById('modal-inputs');
+            modalInputs.innerHTML = '';
+            modalInputs.classList.remove('hidden');
+            modalInputs.classList.add('flex');
+
+            const dateInput = document.createElement('input');
+            dateInput.type = 'date';
+            dateInput.id = 'modal-date-picker';
+            dateInput.value = getStartDate();
+            dateInput.className = 'w-full bg-black/40 border border-white/20 rounded-xl px-4 py-3.5 text-[16px] text-white outline-none focus:border-pink-400 transition-colors shadow-inner font-medium';
+            
+            modalInputs.appendChild(dateInput);
+        };
+
+        // --- WhatsApp-style Photo Editor & Cropper Logic ---
+        let editorImage = null;
+        let editorScale = 1;
+        let editorPosX = 0;
+        let editorPosY = 0;
+        let editorRotation = 0;
+        let isDraggingEditor = false;
+        let startDragX = 0;
+        let startDragY = 0;
+        let editorDrawFrame = 0;
+        const queueEditorDraw = () => {
+            if (editorDrawFrame) return;
+            editorDrawFrame = requestAnimationFrame(() => {
+                editorDrawFrame = 0;
+                drawEditorCanvas();
+            });
+        };
+
+        window.promptChangeCoverPhoto = () => {
+            const fileInput = document.createElement('input');
+            fileInput.type = 'file';
+            fileInput.accept = 'image/*';
+            
+            fileInput.onchange = (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = (readerEvent) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        editorImage = img;
+                        editorScale = 1;
+                        editorPosX = 0;
+                        editorPosY = 0;
+                        editorRotation = 0;
+                        document.getElementById('zoom-range').value = 1;
+                        openPhotoEditor();
+                    };
+                    img.src = readerEvent.target.result;
+                };
+                reader.readAsDataURL(file);
+            };
+            fileInput.click();
+        };
+
+        const openPhotoEditor = () => {
+            const modal = document.getElementById('photo-editor-modal');
+            modal.classList.remove('hidden');
+            void modal.offsetWidth;
+            modal.classList.remove('opacity-0');
+            setTimeout(initEditorCanvas, 50);
+        };
+
+        window.closePhotoEditor = () => {
+            const modal = document.getElementById('photo-editor-modal');
+            modal.classList.add('opacity-0');
+            setTimeout(() => modal.classList.add('hidden'), 300);
+        };
+
+        const initEditorCanvas = () => {
+            const canvas = document.getElementById('editor-canvas');
+            canvas.width = 400;
+            canvas.height = 300;
+            
+            drawEditorCanvas();
+            
+            canvas.onmousedown = startDrag;
+            canvas.onmousemove = duringDrag;
+            canvas.onmouseup = endDrag;
+            canvas.onmouseleave = endDrag;
+
+            canvas.ontouchstart = (e) => { startDrag(e.touches[0]); e.preventDefault(); };
+            canvas.ontouchmove = (e) => { duringDrag(e.touches[0]); e.preventDefault(); };
+            canvas.ontouchend = endDrag;
+
+            document.getElementById('zoom-range').oninput = (e) => {
+                editorScale = parseFloat(e.target.value);
+                drawEditorCanvas();
+            };
+        };
+
+        const drawEditorCanvas = () => {
+            const canvas = document.getElementById('editor-canvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            if (!editorImage) return;
+
+            ctx.save();
+            ctx.translate(canvas.width / 2 + editorPosX, canvas.height / 2 + editorPosY);
+            ctx.rotate((editorRotation * Math.PI) / 180);
+            ctx.scale(editorScale, editorScale);
+            
+            const w = editorImage.width;
+            const h = editorImage.height;
+            ctx.drawImage(editorImage, -w / 2, -h / 2, w, h);
+            ctx.restore();
+        };
+
+        const startDrag = (e) => {
+            isDraggingEditor = true;
+            startDragX = e.clientX - editorPosX;
+            startDragY = e.clientY - editorPosY;
+        };
+
+        const duringDrag = (e) => {
+            if (!isDraggingEditor) return;
+            editorPosX = e.clientX - startDragX;
+            editorPosY = e.clientY - startDragY;
+            queueEditorDraw();
+        };
+
+        const endDrag = () => {
+            isDraggingEditor = false;
+        };
+
+        window.adjustZoom = (delta) => {
+            editorScale = Math.max(0.5, Math.min(3, editorScale + delta));
+            document.getElementById('zoom-range').value = editorScale;
+            drawEditorCanvas();
+        };
+
+        window.rotateEditorImage = () => {
+            editorRotation = (editorRotation + 90) % 360;
+            drawEditorCanvas();
+        };
+
+        window.saveEditedPhoto = () => {
+            const canvas = document.getElementById('editor-canvas');
+            const base64String = canvas.toDataURL('image/jpeg', 0.85);
+            setCoverUrl(base64String);
+            closePhotoEditor();
+            showModal('Sucesso! ✨', 'Foto de capa e perfil atualizadas com sucesso!', false);
+        };
+
+        const getLocalMessages = () => JSON.parse(localStorage.getItem('cantinho_msgs') || '[]');
+        const saveLocalMessage = (msg) => {
+            const msgs = getLocalMessages();
+            const index = msgs.findIndex(item => item.id === msg.id);
+            if (index >= 0) msgs[index] = msg; else msgs.push(msg);
+            try {
+                localStorage.setItem('cantinho_msgs', JSON.stringify(msgs));
+            } catch (e) {
+                msgs.shift();
+                localStorage.setItem('cantinho_msgs', JSON.stringify(msgs));
+            }
+            renderMessages(msgs);
+            syncArrayCollection('mensagens', msgs);
+        };
+
+        const getLocalPhotos = () => JSON.parse(localStorage.getItem('cantinho_photos') || '[]');
+        const saveLocalPhoto = (photo) => {
+            const photos = getLocalPhotos();
+            const index = photos.findIndex(item => item.id === photo.id);
+            if (index >= 0) photos[index] = photo; else photos.unshift(photo);
+            try {
+                localStorage.setItem('cantinho_photos', JSON.stringify(photos));
+            } catch (e) {
+                console.warn("Storage quota exceeded, cleaning oldest photo");
+                if(photos.length > 1) photos.pop();
+                try {
+                    localStorage.setItem('cantinho_photos', JSON.stringify(photos));
+                } catch(err2) {
+                    console.error("Critical storage error", err2);
+                }
+            }
+            renderPhotos(photos);
+            syncArrayCollection('fotos', photos);
+        };
+
+        try {
+            app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            db = getFirestore(app);
+
+            onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    currentUserId = user.uid;
+                    localStorage.setItem('cantinho_user_id', currentUserId);
+                    authReadyResolve(user);
+                }
+            });
+
+            const initialToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+            if (initialToken) {
+                signInWithCustomToken(auth, initialToken).catch(err => {
+                    console.warn('Custom auth failed, trying anonymous auth.', err);
+                    signInAnonymously(auth).catch(() => {
+                        isOfflineMode = true;
+                        authReadyResolve(null);
+                    });
+                });
+            } else {
+                signInAnonymously(auth).catch(err => {
+                    console.error('Anonymous auth failed.', err);
+                    isOfflineMode = true;
+                    setFirebaseStatus(`Autenticação falhou: ${err?.code || 'erro'}`, false);
+                    authReadyResolve(null);
+                });
+            }
+        } catch (e) {
+            console.warn("Firebase init failed, switching to local mode", e);
+            isOfflineMode = true;
+            authReadyResolve(null);
+        }
+
+
+        const featureMetadata = {
+            chat: { name: 'Whispers', icon: 'message-circle', bg: 'bg-blue-500/20', border: 'border-blue-400/30', text: 'text-blue-300', desc: 'Tap to chat' },
+            photos: { name: 'Memories', icon: 'sparkles', bg: 'bg-pink-500/20', border: 'border-pink-400/30', text: 'text-pink-300', desc: 'Symmetric grid' },
+            desafios: { name: 'Desafios de Casal', icon: 'flame', bg: 'bg-orange-500/20', border: 'border-orange-400/30', text: 'text-orange-300', desc: 'Explore missões românticas e quentes' },
+            desejos: { name: 'Desejos', icon: 'star', bg: 'bg-yellow-500/20', border: 'border-yellow-400/30', text: 'text-yellow-300', desc: 'Nossa lista' },
+            datas: { name: 'Datas', icon: 'calendar-heart', bg: 'bg-teal-500/20', border: 'border-teal-400/30', text: 'text-teal-300', desc: 'Dias especiais' },
+            planos: { name: 'Planos', icon: 'map', bg: 'bg-green-500/20', border: 'border-green-400/30', text: 'text-green-300', desc: 'Nosso futuro' },
+            quiz: { name: 'Quiz', icon: 'help-circle', bg: 'bg-indigo-500/20', border: 'border-indigo-400/30', text: 'text-indigo-300', desc: 'Teste o amor' },
+            settings: { name: 'Profile', icon: 'user', bg: 'bg-purple-500/20', border: 'border-purple-400/30', text: 'text-purple-300', desc: 'App settings' }
+        };
+
+        let currentRecentTab = 'desafios';
+
+        window.switchTab = (tabId) => {
+            const titles = { home: 'Home', chat: 'Whispers', photos: 'Memories', desafios: 'Desafios', settings: 'Profile', desejos: 'Desejos', datas: 'Datas Importantes', planos: 'Nossos Planos', quiz: 'Quiz do Casal' };
+            document.getElementById('header-title').innerText = titles[tabId] || '';
+
+            const backBtn = document.getElementById('back-btn');
+            if (tabId === 'home') {
+                backBtn.classList.add('hidden');
+                backBtn.classList.remove('flex');
+            } else {
+                backBtn.classList.remove('hidden');
+                backBtn.classList.add('flex');
+            }
+
+            if (tabId !== 'home' && featureMetadata[tabId]) {
+                currentRecentTab = tabId;
+            }
+
+            updateHomeLayout();
+
+            document.querySelectorAll('main > div').forEach(el => {
+                el.classList.remove('screen-active');
+                el.classList.add('screen-hidden');
+            });
+            
+            const targetScreen = document.getElementById(`screen-${tabId}`);
+            if (targetScreen) {
+                targetScreen.classList.remove('screen-hidden');
+                targetScreen.classList.add('screen-active');
+            }
+
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                const icon = btn.querySelector('.nav-icon');
+                if (btn.dataset.tab === tabId) {
+                    btn.classList.remove('text-white/40');
+                    btn.classList.add('text-white');
+                    if(icon) icon.classList.add('fill-white/20');
+                } else {
+                    btn.classList.remove('text-white');
+                    btn.classList.add('text-white/40');
+                    if(icon) icon.classList.remove('fill-white/20');
+                }
+            });
+            
+            const bottomNav = document.getElementById('bottom-nav');
+            if(tabId === 'chat') {
+                bottomNav.style.transform = 'translateY(150%)';
+                bottomNav.style.transition = 'transform 0.3s ease';
+                setTimeout(scrollToBottom, 100);
+            } else {
+                bottomNav.style.transform = 'translateY(0)';
+            }
+        };
+
+        const updateHomeLayout = () => {
+            const highlightCard = document.getElementById('recent-highlight-card');
+            const gridContainer = document.getElementById('dynamic-grid');
+            if (!highlightCard || !gridContainer) return;
+
+            const recentMeta = featureMetadata[currentRecentTab];
+            
+            highlightCard.className = "liquid-glass-heavy p-5 rounded-[28px] flex items-center gap-4 active:scale-95 transition-all group flex-shrink-0 cursor-pointer shadow-xl border border-orange-400/30 relative overflow-hidden z-20 mb-4 col-span-2";
+            highlightCard.setAttribute('onclick', `switchTab('${currentRecentTab}')`);
+            highlightCard.innerHTML = `
+                <div class="absolute -right-6 -bottom-6 w-24 h-24 ${recentMeta.bg} rounded-full blur-xl pointer-events-none"></div>
+                <div class="w-12 h-12 rounded-full ${recentMeta.bg} border ${recentMeta.border} flex items-center justify-center group-hover:scale-110 transition-transform flex-shrink-0 pointer-events-none">
+                    <i data-lucide="${recentMeta.icon}" class="w-6 h-6 ${recentMeta.text}"></i>
+                </div>
+                <div class="text-left flex-1 min-w-0 pointer-events-none">
+                    <p class="font-bold text-base text-white truncate">${recentMeta.name}</p>
+                    <p class="text-xs text-white/60 truncate mt-0.5">${recentMeta.desc}</p>
+                </div>
+                <i data-lucide="chevron-right" class="w-5 h-5 text-white/40 flex-shrink-0 pointer-events-none"></i>
+            `;
+
+            gridContainer.innerHTML = '';
+            Object.keys(featureMetadata).forEach(tabId => {
+                if (tabId === currentRecentTab) return;
+                const meta = featureMetadata[tabId];
+                
+                const btn = document.createElement('button');
+                btn.setAttribute('onclick', `switchTab('${tabId}')`);
+                btn.className = "liquid-glass p-4 sm:p-5 rounded-[28px] flex flex-col items-start gap-3 active:scale-95 transition-transform hover:bg-white/10 group cursor-pointer relative z-20";
+                btn.innerHTML = `
+                    <div class="w-11 h-11 rounded-full ${meta.bg} border ${meta.border} flex items-center justify-center group-hover:${meta.bg.replace('/20', '/40')} transition-colors pointer-events-none">
+                        <i data-lucide="${meta.icon}" class="w-5 h-5 ${meta.text}"></i>
+                    </div>
+                    <div class="text-left pointer-events-none">
+                        <p class="font-semibold text-sm sm:text-base text-white">${meta.name}</p>
+                        <p class="text-[11px] text-white/50 mt-0.5">${meta.desc}</p>
+                    </div>
+                `;
+                gridContainer.appendChild(btn);
+            });
+
+            queueIconRender();
+        };
+
+        updateHomeLayout();
+
+        const chatInput = document.getElementById('chat-input');
+        const chatSendBtn = document.getElementById('chat-send-btn');
+        const chatMicBtn = document.getElementById('chat-mic-btn');
+        const chatMessages = document.getElementById('chat-messages');
+
+        chatInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+            if (this.value.trim().length > 0) {
+                chatSendBtn.classList.remove('hidden');
+                chatMicBtn.classList.add('hidden');
+            } else {
+                chatSendBtn.classList.add('hidden');
+                chatMicBtn.classList.remove('hidden');
+            }
+        });
+
+        const sendTextMessage = async (text, type = 'text') => {
+            const newMsg = {
+                id: 'msg-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8),
+                text: text,
+                type: type,
+                userId: currentUserId,
+                timestamp: Date.now()
+            };
+
+            saveLocalMessage(newMsg);
+            if (syncReady && db && coupleId) {
+                try {
+                    await setDoc(doc(db, 'casais', coupleId, 'mensagens', newMsg.id), { ...newMsg, coupleId });
+                } catch (err) {
+                    console.warn('Falha ao enviar mensagem para o Firebase.', err);
+                    showModal('Sem sincronização', 'A mensagem foi salva neste aparelho, mas não conseguiu chegar ao Firebase. Confira sua conexão e o Firebase Console.', false);
+                }
+            }
+        };
+
+        chatSendBtn.addEventListener('click', () => {
+            const text = chatInput.value.trim();
+            if (text) {
+                sendTextMessage(text);
+                chatInput.value = '';
+                chatInput.style.height = 'auto';
+                chatSendBtn.classList.add('hidden');
+                chatMicBtn.classList.remove('hidden');
+            }
+        });
+
+        let isRecording = false;
+        let mediaRecorder = null;
+        let audioChunks = [];
+        let audioStream = null;
+        let recordingStartedAt = 0;
+
+        const setMicVisual = (recording) => {
+            if (recording) {
+                chatMicBtn.classList.add('recording-pulse');
+            } else {
+                chatMicBtn.classList.remove('recording-pulse');
+            }
+            const icon = chatMicBtn.querySelector('svg') || chatMicBtn.querySelector('i');
+            if (icon) {
+                icon.classList.toggle('text-red-400', recording);
+                icon.classList.toggle('text-white/70', !recording);
+            }
+        };
+
+        const startRecordingUI = async () => {
+            if (isRecording) return;
+            if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === 'undefined') {
+                showModal('Áudio indisponível', 'Seu navegador não liberou gravação de áudio neste ambiente. Abra o app por HTTPS/localhost e permita o microfone.', false);
+                return;
+            }
+            try {
+                audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                const mimeTypes = ['audio/webm;codecs=opus','audio/webm','audio/ogg;codecs=opus','audio/mp4'];
+                const supported = mimeTypes.find(type => MediaRecorder.isTypeSupported(type));
+                mediaRecorder = new MediaRecorder(audioStream, supported ? {mimeType:supported} : undefined);
+                audioChunks = [];
+                recordingStartedAt = Date.now();
+                mediaRecorder.ondataavailable = (event) => { if (event.data?.size) audioChunks.push(event.data); };
+                mediaRecorder.onstop = async () => {
+                    const duration = Math.max(1, Math.round((Date.now() - recordingStartedAt) / 1000));
+                    const blob = new Blob(audioChunks, {type: mediaRecorder?.mimeType || 'audio/webm'});
+                    try {
+                        const dataUrl = await readFileAsDataUrl(blob);
+                        saveLocalMessage({
+                            id: 'msg-' + Date.now() + '-' + Math.random().toString(36).slice(2,7),
+                            text: `Áudio · ${duration}s`,
+                            type: 'audio',
+                            url: dataUrl,
+                            mimeType: blob.type,
+                            duration,
+                            userId: currentUserId,
+                            timestamp: Date.now()
+                        });
+                    } catch (err) {
+                        console.error(err);
+                        showModal('Erro', 'Não foi possível salvar o áudio gravado.', false);
+                    } finally {
+                        audioStream?.getTracks().forEach(track => track.stop());
+                        audioStream = null;
+                        mediaRecorder = null;
+                        audioChunks = [];
+                    }
+                };
+                mediaRecorder.start();
+                isRecording = true;
+                setMicVisual(true);
+                chatInput.placeholder = 'Gravando... solte para enviar';
+                chatInput.disabled = true;
+            } catch (err) {
+                console.error(err);
+                audioStream?.getTracks().forEach(track => track.stop());
+                audioStream = null;
+                showModal('Microfone bloqueado', 'Permita o acesso ao microfone para gravar um áudio.', false);
+            }
+        };
+
+        const stopRecordingUI = () => {
+            if (!isRecording) return;
+            isRecording = false;
+            setMicVisual(false);
+            chatInput.placeholder = 'Whisper something...';
+            chatInput.disabled = false;
+            if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
+        };
+
+        const cancelRecordingUI = () => {
+            isRecording = false;
+            setMicVisual(false);
+            chatInput.placeholder = 'Whisper something...';
+            chatInput.disabled = false;
+            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                mediaRecorder.ondataavailable = null;
+                mediaRecorder.onstop = null;
+                mediaRecorder.stop();
+            }
+            audioStream?.getTracks().forEach(track => track.stop());
+            audioStream = null;
+            mediaRecorder = null;
+            audioChunks = [];
+        };
+
+        chatMicBtn.addEventListener('mousedown', (e) => { e.preventDefault(); startRecordingUI(); });
+        chatMicBtn.addEventListener('touchstart', (e) => { e.preventDefault(); startRecordingUI(); }, {passive:false});
+        window.addEventListener('mouseup', () => { if(isRecording) stopRecordingUI(); }, {passive:true});
+        window.addEventListener('touchend', () => { if(isRecording) stopRecordingUI(); }, {passive:true});
+        window.addEventListener('blur', () => { if(isRecording) stopRecordingUI(); });
+
+        const renderMessages = (messages) => {
+            const header = chatMessages.firstElementChild;
+            chatMessages.innerHTML = '';
+            if(header) chatMessages.appendChild(header);
+
+            messages.forEach(msg => {
+                const isMe = msg.userId === currentUserId;
+                const wrapper = document.createElement('div');
+                wrapper.className = `flex w-full ${isMe ? 'justify-end' : 'justify-start'}`;
+                
+                const bubble = document.createElement('div');
+                let bubbleClasses = `max-w-[80%] px-4 py-3 rounded-[24px] text-[15px] leading-relaxed shadow-lg backdrop-blur-md border `;
+                
+                if (isMe) {
+                    bubbleClasses += `bg-indigo-500/80 border-indigo-400/50 text-white rounded-br-sm`;
+                } else {
+                    bubbleClasses += `liquid-glass text-white rounded-bl-sm`;
+                }
+                
+                bubble.className = bubbleClasses;
+                
+                if (msg.type === 'audio' && msg.url) {
+                    bubble.innerHTML = `
+                        <div class="flex flex-col gap-2 min-w-[220px]">
+                            <div class="flex items-center gap-2 text-xs text-white/70 font-semibold">
+                                <i data-lucide="mic-2" class="w-4 h-4"></i> ${escapeHtml(msg.text || 'Áudio')}
+                            </div>
+                            <audio controls preload="metadata" class="w-full h-9" src="${msg.url}"></audio>
+                        </div>`;
+                } else if (msg.type === 'image' && msg.url) {
+                    bubble.innerHTML = `<div class="flex flex-col gap-2"><img src="${msg.url}" alt="${escapeHtml(msg.text || 'Imagem')}" class="max-w-full max-h-64 rounded-2xl object-contain cursor-pointer" onclick="window.openChatImage('${escapeHtml(msg.url)}','${escapeHtml(msg.text || 'Imagem')}')"><span class="text-xs text-white/60 truncate">${escapeHtml(msg.text || '')}</span></div>`;
+                } else if (msg.type === 'file' && msg.url) {
+                    bubble.innerHTML = `<a href="${msg.url}" download="${escapeHtml(msg.text || 'arquivo')}" class="flex items-center gap-3 font-medium"><i data-lucide="file-down" class="w-5 h-5"></i><span class="truncate">${escapeHtml(msg.text || 'Arquivo')}</span></a>`;
+                } else {
+                    bubble.innerText = msg.text || '';
+                }
+                
+                wrapper.appendChild(bubble);
+                chatMessages.appendChild(wrapper);
+            });
+            queueIconRender();
+            scrollToBottom();
+        };
+
+        const scrollToBottom = () => {
+            setTimeout(() => { chatMessages.scrollTop = chatMessages.scrollHeight; }, 50);
+        };
+
+        // --- Desejos (Firebase + cache local) ---
+        const getLocalWishes = () => {
+            try { return JSON.parse(localStorage.getItem('cantinho_wishes') || '[]'); }
+            catch (e) { return []; }
+        };
+        const saveLocalWishes = (data) => { localStorage.setItem('cantinho_wishes', JSON.stringify(data)); syncArrayCollection('desejos', data); };
+
+        const getWishLevel = (item) => Math.min(5, Math.max(1, Number(item.level) || 3));
+
+        const buildWishStars = (level, extraClass = '') => {
+            const safeLevel = Math.min(5, Math.max(1, Number(level) || 3));
+            return Array.from({length: 5}, (_, i) => {
+                const active = i < safeLevel;
+                return `<span class="text-base leading-none ${active ? 'text-yellow-400' : 'text-white/20'} ${extraClass}">★</span>`;
+            }).join('');
+        };
+
+        window.renderWishes = () => {
+            const list = document.getElementById('wishes-list');
+            if (!list) return;
+            const wishes = getLocalWishes().sort((a,b) => Number(a.completed) - Number(b.completed) || getWishLevel(b) - getWishLevel(a) || (b.timestamp||0) - (a.timestamp||0));
+            if (!wishes.length) {
+                list.innerHTML = '<div class="liquid-glass rounded-3xl p-6 text-center text-white/50 text-sm">Nenhum desejo adicionado ainda. ✨</div>';
+                return;
+            }
+            list.innerHTML = wishes.map(item => `
+                <div class="liquid-glass p-4 rounded-[24px] flex items-center gap-3 ${item.completed ? 'opacity-60' : ''}">
+                    <button onclick="toggleWish('${escapeHtml(item.id)}')" class="w-8 h-8 rounded-full border-2 ${item.completed ? 'bg-yellow-500 border-yellow-400' : 'border-white/30'} flex items-center justify-center shrink-0 active:scale-90 transition-all" aria-label="${item.completed ? 'Marcar desejo como pendente' : 'Marcar desejo como realizado'}">
+                        ${item.completed ? '<i data-lucide="check" class="w-4 h-4 text-white"></i>' : '<i data-lucide="star" class="w-4 h-4 text-yellow-400"></i>'}
+                    </button>
+                    <div class="flex-1 min-w-0 safe-text">
+                        <p class="font-semibold text-white ${item.completed ? 'line-through' : ''} safe-text">${escapeHtml(item.title)}</p>
+                        ${item.description ? `<p class="text-xs text-white/50 mt-1 safe-text">${escapeHtml(item.description)}</p>` : ''}
+                        <div class="flex items-center gap-0.5 mt-2" title="Nível do desejo: ${getWishLevel(item)}/5" aria-label="Nível do desejo: ${getWishLevel(item)} de 5 estrelas">${buildWishStars(getWishLevel(item))}</div>
+                    </div>
+                    <button onclick="deleteWish('${escapeHtml(item.id)}')" class="w-9 h-9 rounded-full liquid-glass flex items-center justify-center text-red-400 hover:bg-red-500/20 shrink-0" aria-label="Excluir desejo"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                </div>`).join('');
+            queueIconRender();
+        };
+
+        window.promptAddWish = () => {
+            showModal('Novo Desejo', 'Adicione algo que vocês querem realizar juntos.', true, (inputs) => {
+                const titleInput = document.getElementById('wish-title-input');
+                const descriptionInput = document.getElementById('wish-description-input');
+                const title = titleInput?.value.trim() || '';
+                const description = descriptionInput?.value.trim() || '';
+                const levelInput = document.getElementById('wish-level-input');
+                const level = Math.min(5, Math.max(1, Number(levelInput?.value) || 3));
+                if (!title) {
+                    showModal('Atenção', 'Informe o desejo antes de salvar.', false);
+                    return;
+                }
+                const wishes = getLocalWishes();
+                wishes.push({
+                    id: 'wish-' + Date.now() + '-' + Math.random().toString(36).slice(2,7),
+                    title,
+                    description,
+                    level,
+                    completed: false,
+                    timestamp: Date.now()
+                });
+                saveLocalWishes(wishes);
+                renderWishes();
+            });
+            setTimeout(() => {
+                const inputsDiv = document.getElementById('modal-inputs');
+                const inputs = inputsDiv.querySelectorAll('input');
+                if (!inputs.length) return;
+                inputs[0].style.display = 'none';
+                inputs[1].id = 'wish-title-input';
+                inputs[1].placeholder = 'O que vocês desejam fazer?';
+
+                const levelWrap = document.createElement('div');
+                levelWrap.className = 'w-full rounded-2xl bg-black/20 border border-white/10 p-3.5 flex flex-col gap-2';
+                levelWrap.innerHTML = `
+                    <div class="flex items-center justify-between gap-3">
+                        <span class="text-sm font-semibold text-white">O quanto você quer esse desejo?</span>
+                        <span id="wish-level-label" class="text-xs text-yellow-300 font-bold">3/5</span>
+                    </div>
+                    <div id="wish-stars-picker" class="flex items-center justify-center gap-2 py-1" role="radiogroup" aria-label="Nível do desejo"></div>
+                    <input id="wish-level-input" type="hidden" value="3">`;
+
+                const starsPicker = levelWrap.querySelector('#wish-stars-picker');
+                const levelLabel = levelWrap.querySelector('#wish-level-label');
+                const hiddenLevel = levelWrap.querySelector('#wish-level-input');
+                for (let i = 1; i <= 5; i++) {
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'w-10 h-10 rounded-xl flex items-center justify-center text-2xl active:scale-90 transition-transform';
+                    btn.dataset.level = String(i);
+                    btn.setAttribute('role', 'radio');
+                    btn.setAttribute('aria-label', `${i} de 5 estrelas`);
+                    btn.innerHTML = '<span>★</span>';
+                    btn.addEventListener('click', () => {
+                        hiddenLevel.value = String(i);
+                        levelLabel.textContent = `${i}/5`;
+                        Array.from(starsPicker.children).forEach((starBtn, index) => {
+                            const active = index < i;
+                            starBtn.className = `w-10 h-10 rounded-xl flex items-center justify-center text-2xl active:scale-90 transition-transform ${active ? 'text-yellow-400 bg-yellow-400/10' : 'text-white/20 bg-white/5'}`;
+                            starBtn.setAttribute('aria-checked', active && index === i - 1 ? 'true' : 'false');
+                        });
+                    });
+                    starsPicker.appendChild(btn);
+                }
+                levelWrap.querySelector('[data-level="3"]').click();
+
+                const desc = document.createElement('input');
+                desc.type = 'text';
+                desc.id = 'wish-description-input';
+                desc.placeholder = 'Detalhes (opcional)...';
+                desc.className = inputs[1].className;
+
+                inputsDiv.insertBefore(levelWrap, inputs[1].nextSibling);
+                inputsDiv.appendChild(desc);
+                inputs[1].focus();
+            }, 50);
+        };
+
+        window.toggleWish = (id) => {
+            const wishes = getLocalWishes();
+            const wish = wishes.find(item => item.id === id);
+            if (!wish) return;
+            wish.completed = !wish.completed;
+            saveLocalWishes(wishes);
+            renderWishes();
+        };
+
+        window.deleteWish = (id) => {
+            const wishes = getLocalWishes();
+            saveLocalWishes(wishes.filter(item => item.id !== id));
+            syncDeleteItem('desejos', id);
+            renderWishes();
+        };
+
+        // --- Datas Importantes / Planos (Firebase + cache local) ---
+        const getLocalDates = () => JSON.parse(localStorage.getItem('cantinho_dates') || '[]');
+        const saveLocalDates = (data) => { localStorage.setItem('cantinho_dates', JSON.stringify(data)); syncArrayCollection('datas', data); };
+        const getLocalPlans = () => JSON.parse(localStorage.getItem('cantinho_plans') || '[]');
+        const saveLocalPlans = (data) => { localStorage.setItem('cantinho_plans', JSON.stringify(data)); syncArrayCollection('planos', data); };
+
+        const escapeHtml = (value) => String(value ?? '').replace(/[&<>'"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#039;'}[ch]));
+
+        window.renderDates = () => {
+            const list = document.getElementById('dates-list');
+            if (!list) return;
+            const dates = getLocalDates().sort((a,b) => String(a.date).localeCompare(String(b.date)));
+            if (!dates.length) {
+                list.innerHTML = '<div class="liquid-glass rounded-3xl p-6 text-center text-white/50 text-sm">Nenhuma data adicionada ainda.</div>';
+                return;
+            }
+            list.innerHTML = dates.map(item => `
+                <div class="liquid-glass p-4 rounded-[24px] flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-2xl bg-teal-500/20 border border-teal-400/30 flex flex-col items-center justify-center shrink-0">
+                        <span class="text-[10px] uppercase text-teal-200 font-bold">${escapeHtml(new Date(item.date + 'T00:00:00').toLocaleDateString('pt-BR',{month:'short'}).replace('.', ''))}</span>
+                        <span class="text-lg font-bold text-white leading-none">${escapeHtml(new Date(item.date + 'T00:00:00').getDate())}</span>
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <p class="font-semibold text-white safe-text">${escapeHtml(item.title)}</p>
+                        ${item.description ? `<p class="text-xs text-white/50 mt-1 safe-text">${escapeHtml(item.description)}</p>` : ''}
+                    </div>
+                    <button onclick="deleteDate('${escapeHtml(item.id)}')" class="w-9 h-9 rounded-full liquid-glass flex items-center justify-center text-red-400 hover:bg-red-500/20 shrink-0" aria-label="Excluir data"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                </div>`).join('');
+            queueIconRender();
+        };
+
+        window.promptAddDate = () => {
+            showModal('Nova Data', 'Adicione um momento marcante à linha do tempo.', true, (inputs) => {
+                const date = inputs[0]?.value;
+                const title = inputs[1]?.value.trim();
+                const description = inputs[2]?.value.trim() || '';
+                if (!date || !title) { showModal('Atenção', 'Informe a data e o nome do momento.', false); return; }
+                const dates = getLocalDates();
+                dates.push({id:'date-' + Date.now() + '-' + Math.random().toString(36).slice(2,7), date, title, description, timestamp:Date.now()});
+                saveLocalDates(dates);
+                renderDates();
+                setTimeout(() => showModal('Salvo! ✨', 'Data adicionada à sua história.', false), 330);
+            });
+            setTimeout(() => {
+                const inputsDiv = document.getElementById('modal-inputs');
+                const inputs = inputsDiv.querySelectorAll('input');
+                if (!inputs.length) return;
+                inputs[0].type = 'date';
+                inputs[0].placeholder = '';
+                inputs[1].placeholder = 'Nome da data...';
+                const desc = document.createElement('input');
+                desc.type = 'text';
+                desc.placeholder = 'Descrição (opcional)...';
+                desc.className = inputs[1].className;
+                inputsDiv.appendChild(desc);
+                inputs[0].focus();
+            }, 50);
+        };
+
+        window.deleteDate = (id) => {
+            const dates = getLocalDates();
+            saveLocalDates(dates.filter(item => item.id !== id));
+            syncDeleteItem('datas', id);
+            renderDates();
+        };
+
+        window.renderPlans = () => {
+            const list = document.getElementById('plans-list');
+            if (!list) return;
+            const plans = getLocalPlans().sort((a,b) => Number(a.completed) - Number(b.completed) || (b.timestamp||0)-(a.timestamp||0));
+            if (!plans.length) {
+                list.innerHTML = '<div class="liquid-glass rounded-3xl p-6 text-center text-white/50 text-sm">Nenhum plano adicionado ainda.</div>';
+                return;
+            }
+            list.innerHTML = plans.map(item => `
+                <div class="liquid-glass p-4 rounded-[24px] flex items-center gap-3 ${item.completed ? 'opacity-60' : ''}">
+                    <button onclick="togglePlan('${escapeHtml(item.id)}')" class="w-7 h-7 rounded-full border-2 ${item.completed ? 'bg-green-500 border-green-400' : 'border-white/30'} flex items-center justify-center shrink-0">${item.completed ? '<i data-lucide="check" class="w-4 h-4 text-white"></i>' : ''}</button>
+                    <div class="flex-1 min-w-0">
+                        <p class="font-semibold text-white safe-text ${item.completed ? 'line-through' : ''}">${escapeHtml(item.title)}</p>
+                        <p class="text-xs text-white/50 mt-1 safe-text">${escapeHtml(item.description || '')}${item.targetDate ? (item.description ? ' · ' : '') + escapeHtml(new Date(item.targetDate + 'T00:00:00').toLocaleDateString('pt-BR')) : ''}</p>
+                    </div>
+                    <button onclick="deletePlan('${escapeHtml(item.id)}')" class="w-9 h-9 rounded-full liquid-glass flex items-center justify-center text-red-400 hover:bg-red-500/20 shrink-0" aria-label="Excluir plano"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                </div>`).join('');
+            queueIconRender();
+        };
+
+        window.promptAddPlan = () => {
+            showModal('Novo Plano', 'Adicione um plano para o futuro.', true, (inputs) => {
+                const title = inputs[1]?.value.trim();
+                const description = inputs[2]?.value.trim() || '';
+                const targetDate = inputs[0]?.value || '';
+                if (!title) { showModal('Atenção', 'Informe o nome do plano.', false); return; }
+                const plans = getLocalPlans();
+                plans.push({id:'plan-' + Date.now() + '-' + Math.random().toString(36).slice(2,7), targetDate, title, description, completed:false, timestamp:Date.now()});
+                saveLocalPlans(plans);
+                renderPlans();
+                setTimeout(() => showModal('Salvo! ✨', 'Plano adicionado com sucesso.', false), 330);
+            });
+            setTimeout(() => {
+                const inputsDiv = document.getElementById('modal-inputs');
+                const inputs = inputsDiv.querySelectorAll('input');
+                if (!inputs.length) return;
+                inputs[0].type = 'date';
+                inputs[1].placeholder = 'Nome do plano...';
+                const desc = document.createElement('input');
+                desc.type = 'text';
+                desc.placeholder = 'Descrição (opcional)...';
+                desc.className = inputs[1].className;
+                inputsDiv.appendChild(desc);
+                inputs[1].focus();
+            }, 50);
+        };
+
+        window.togglePlan = (id) => {
+            const plans = getLocalPlans();
+            const plan = plans.find(item => item.id === id);
+            if (!plan) return;
+            plan.completed = !plan.completed;
+            saveLocalPlans(plans);
+            renderPlans();
+        };
+
+        window.deletePlan = (id) => {
+            saveLocalPlans(getLocalPlans().filter(item => item.id !== id));
+            syncDeleteItem('planos', id);
+            renderPlans();
+        };
+
+        // --- Chat: + / anexos (Firebase + cache local) ---
+        const chatPlusBtn = document.getElementById('chat-plus-btn');
+        const chatAttachMenu = document.getElementById('chat-attach-menu');
+        const chatFileInput = document.getElementById('chat-file-input');
+        const chatPhotoAttach = document.getElementById('chat-photo-attach');
+        const chatCameraAttach = document.getElementById('chat-camera-attach');
+        const chatFileAttach = document.getElementById('chat-file-attach');
+        let pendingChatAttachMode = 'file';
+
+        const readFileAsDataUrl = (file) => new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+        });
+
+        const addChatAttachment = async (file) => {
+            if (!file) return;
+            try {
+                const dataUrl = await readFileAsDataUrl(file);
+                const msg = {
+                    id: 'msg-' + Date.now() + '-' + Math.random().toString(36).slice(2,7),
+                    type: file.type.startsWith('image/') ? 'image' : 'file',
+                    text: file.name,
+                    url: dataUrl,
+                    mimeType: file.type || 'application/octet-stream',
+                    userId: currentUserId,
+                    timestamp: Date.now()
+                };
+                saveLocalMessage(msg);
+                chatAttachMenu.classList.add('hidden');
+                chatFileInput.value = '';
+            } catch (err) {
+                console.error(err);
+                showModal('Erro', 'Não foi possível anexar esse arquivo.', false);
+            }
+        };
+
+        chatPlusBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            chatAttachMenu.classList.toggle('hidden');
+        });
+        chatPhotoAttach.addEventListener('click', () => { pendingChatAttachMode='photo'; chatFileInput.accept='image/*,video/*'; chatFileInput.removeAttribute('capture'); chatFileInput.click(); });
+        chatCameraAttach.addEventListener('click', () => { pendingChatAttachMode='camera'; chatFileInput.accept='image/*'; chatFileInput.setAttribute('capture','environment'); chatFileInput.click(); });
+        chatFileAttach.addEventListener('click', () => { pendingChatAttachMode='file'; chatFileInput.accept='*/*'; chatFileInput.removeAttribute('capture'); chatFileInput.click(); });
+        chatFileInput.addEventListener('change', () => addChatAttachment(chatFileInput.files?.[0]));
+        document.addEventListener('click', (e) => { if (chatAttachMenu && !chatAttachMenu.contains(e.target) && e.target !== chatPlusBtn) chatAttachMenu.classList.add('hidden'); });
+
+        window.openChatImage = (src, alt='Imagem') => {
+            const existing = document.getElementById('chat-image-viewer');
+            if (existing) existing.remove();
+            const viewer = document.createElement('div');
+            viewer.id = 'chat-image-viewer';
+            viewer.className = 'fixed inset-0 z-[400] bg-black/95 flex items-center justify-center p-5';
+            viewer.innerHTML = `<button class="absolute top-5 right-5 w-11 h-11 rounded-full bg-white/10 text-white flex items-center justify-center" aria-label="Fechar"><i data-lucide="x" class="w-6 h-6"></i></button><img src="${src}" alt="${alt}" class="max-w-[92vw] max-h-[88vh] object-contain rounded-2xl">`;
+            document.body.appendChild(viewer);
+            viewer.addEventListener('click', (e) => { if (e.target === viewer || e.target.closest('button')) viewer.remove(); });
+            queueIconRender();
+        };
+
+        const photoGrid = document.getElementById('photo-grid');
+        const addPhotoBtn = document.getElementById('add-photo-btn');
+        const EMOJIS = ['❤️', '🔥', '😂', '🥺', '✨'];
+
+        const saveLocalPhotoReaction = (photoId, emoji) => {
+            const photos = getLocalPhotos();
+            const photo = photos.find(p => p.id === photoId);
+            if (!photo) return;
+            photo.reactions = photo.reactions || {};
+            photo.reactions[currentUserId] = emoji;
+            localStorage.setItem('cantinho_photos', JSON.stringify(photos));
+            renderPhotos(photos);
+            syncArrayCollection('fotos', photos);
+
+            // Mostra apenas a reação como texto/emoji flutuante sobre a foto.
+            const card = photoGrid.querySelector(`[data-photo-id="${photoId}"]`);
+            if (card) {
+                const floating = document.createElement('div');
+                floating.className = 'floating-reaction';
+                floating.textContent = emoji;
+                card.appendChild(floating);
+                setTimeout(() => floating.remove(), 1200);
+            }
+        };
+
+        const renderPhotoViewer = (photo) => {
+            const image = document.getElementById('photo-viewer-image');
+            const caption = document.getElementById('photo-viewer-caption');
+            const title = document.getElementById('photo-viewer-title');
+            if (!image || !caption || !title || !photo) return;
+
+            image.decoding = 'async';
+            image.src = photo.url || '';
+            image.alt = photo.caption || 'Memória';
+            caption.textContent = photo.caption || 'Nossa Memória';
+            title.textContent = 'Nossa Memória';
+        };
+
+        window.openPhotoViewer = (photoId) => {
+            const photo = getLocalPhotos().find(p => p.id === photoId);
+            if (!photo) return;
+            renderPhotoViewer(photo);
+            const modal = document.getElementById('photo-viewer-modal');
+            modal.classList.remove('hidden');
+            void modal.offsetWidth;
+            modal.classList.remove('opacity-0');
+            document.body.classList.add('overflow-hidden');
+        };
+
+        const closePhotoViewer = () => {
+            const modal = document.getElementById('photo-viewer-modal');
+            if (!modal) return;
+            modal.classList.add('opacity-0');
+            setTimeout(() => modal.classList.add('hidden'), 300);
+            document.body.classList.remove('overflow-hidden');
+        };
+
+        document.getElementById('photo-viewer-close')?.addEventListener('click', closePhotoViewer);
+        document.getElementById('photo-viewer-stage')?.addEventListener('click', (e) => {
+            if (e.target.id === 'photo-viewer-stage') closePhotoViewer();
+        });
+
+        const renderPhotos = (photos) => {
+            photoGrid.innerHTML = '';
+            if (photos.length === 0) {
+                photoGrid.innerHTML = '<div class="col-span-2 text-center text-white/50 mt-10 font-medium py-10">Space is empty. Add a memory.</div>';
+                return;
+            }
+
+            photos.forEach((photo) => {
+                const card = document.createElement('div');
+                card.dataset.photoId = photo.id;
+                card.className = 'liquid-glass rounded-[24px] relative group aspect-square flex flex-col overflow-visible cursor-pointer';
+                card.onclick = () => window.openPhotoViewer(photo.id);
+
+                const imgContainer = document.createElement('div');
+                imgContainer.className = 'flex-1 relative w-full h-full overflow-hidden rounded-[24px]';
+
+                const img = document.createElement('img');
+                img.decoding = 'async';
+                img.loading = 'lazy';
+                img.src = photo.url;
+                img.className = 'absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 pointer-events-auto';
+                img.addEventListener('click', (e) => { e.stopPropagation(); window.openPhotoViewer(photo.id); });
+                img.onerror = () => { img.src = 'https://placehold.co/400x400/0f172a/FFF?text=Memory'; };
+
+                const overlay = document.createElement('div');
+                overlay.className = 'absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none';
+
+                const meta = document.createElement('div');
+                meta.className = 'absolute bottom-0 left-0 right-0 p-3 flex justify-between items-end z-10';
+                meta.onclick = (e) => e.stopPropagation();
+                meta.style.pointerEvents = 'auto';
+
+                const caption = document.createElement('p');
+                caption.className = 'text-xs font-medium text-white truncate drop-shadow-md pr-2 pointer-events-none';
+                caption.innerText = photo.caption || 'Memory';
+
+                const reactContainer = document.createElement('div');
+                reactContainer.className = 'relative flex items-center';
+                reactContainer.onclick = (e) => e.stopPropagation();
+
+                const reactBtn = document.createElement('button');
+                reactBtn.type = 'button';
+                reactBtn.className = 'w-8 h-8 rounded-full liquid-glass flex items-center justify-center border-white/30 backdrop-blur-xl active:scale-90 transition-transform';
+
+                const myReaction = photo.reactions ? photo.reactions[currentUserId] : null;
+                reactBtn.innerHTML = myReaction
+                    ? `<span class="text-sm">${myReaction}</span>`
+                    : `<i data-lucide="smile-plus" class="w-4 h-4 text-white drop-shadow"></i>`;
+
+                const picker = document.createElement('div');
+                picker.className = 'reaction-picker absolute bottom-full right-0 mb-2 liquid-glass-heavy rounded-full p-1.5 flex gap-1 shadow-2xl border border-white/20 z-[80]';
+
+                EMOJIS.forEach(emoji => {
+                    const eBtn = document.createElement('button');
+                    eBtn.type = 'button';
+                    eBtn.className = 'w-8 h-8 flex items-center justify-center hover:bg-white/10 rounded-full transition-colors text-lg active:scale-75';
+                    eBtn.innerText = emoji;
+                    eBtn.onclick = (e) => {
+                        e.stopPropagation();
+                        picker.classList.remove('show');
+                        saveLocalPhotoReaction(photo.id, emoji);
+                    };
+                    picker.appendChild(eBtn);
+                });
+
+                reactBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    document.querySelectorAll('.reaction-picker').forEach(p => {
+                        if (p !== picker) p.classList.remove('show');
+                    });
+                    picker.classList.toggle('show');
+                };
+
+                reactContainer.appendChild(picker);
+                reactContainer.appendChild(reactBtn);
+                meta.appendChild(caption);
+                meta.appendChild(reactContainer);
+                imgContainer.appendChild(img);
+                imgContainer.appendChild(overlay);
+                imgContainer.appendChild(meta);
+                card.appendChild(imgContainer);
+                photoGrid.appendChild(card);
+            });
+            queueIconRender();
+        };
+
+        document.addEventListener('click', () => {
+            document.querySelectorAll('.reaction-picker').forEach(p => p.classList.remove('show'));
+        });
+
+        addPhotoBtn.addEventListener('click', () => {
+            const fileInput = document.createElement('input');
+            fileInput.type = 'file';
+            fileInput.accept = 'image/*';
+            
+            fileInput.onchange = (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = (readerEvent) => {
+                    // Mantém a imagem original, sem redimensionar ou recomprimir.
+                    // Assim a visualização em tela cheia usa a resolução real do arquivo enviado.
+                    const base64String = readerEvent.target.result;
+
+                    showModal('Nova Memória', 'Adicione uma legenda para esta foto.', true, async (inputs) => {
+                        const caption = inputs[1].value.trim() || 'Nossa Memória';
+
+                        const newPhoto = {
+                            id: 'local-' + Date.now(),
+                            url: base64String,
+                            caption: caption,
+                            userId: currentUserId,
+                            timestamp: Date.now(),
+                            reactions: {}
+                        };
+
+                        saveLocalPhoto(newPhoto);
+                    });
+                    
+                    setTimeout(() => {
+                       const inputsDiv = document.getElementById('modal-inputs');
+                       const inputs = inputsDiv.querySelectorAll('input');
+                       if(inputs.length > 0) {
+                           inputs[0].style.display = 'none';
+                           inputs[1].focus();
+                       }
+                    }, 50);
+                };
+                reader.readAsDataURL(file);
+            };
+            fileInput.click();
+        });
+
+        const getCoupleCollection = (name) => {
+            if (!db || !coupleId) throw new Error('Casal ainda não conectado.');
+            return collection(db, 'casais', coupleId, name);
+        };
+
+        const docId = (item) => String(item?.id || ('item-' + Date.now() + '-' + Math.random().toString(36).slice(2, 9)));
+
+        const cleanFirestoreObject = (value) => {
+            if (Array.isArray(value)) return value.map(cleanFirestoreObject);
+            if (value && typeof value === 'object') {
+                const out = {};
+                Object.entries(value).forEach(([key, val]) => {
+                    if (val !== undefined) out[key] = cleanFirestoreObject(val);
+                });
+                return out;
+            }
+            return value;
+        };
+
+        const syncSetConfig = async (patch = {}) => {
+            if (!syncReady || !db || !coupleId) return;
+            const data = cleanFirestoreObject({
+                id: 'settings',
+                coupleId,
+                startDate: patch.startDate ?? getStartDate(),
+                coverUrl: patch.coverUrl ?? getCoverUrl(),
+                updatedAt: Date.now(),
+                updatedBy: currentUserId
+            });
+            try {
+                await setDoc(doc(db, 'casais', coupleId, 'config', 'settings'), data, { merge: true });
+            } catch (err) {
+                console.warn('Não foi possível sincronizar as configurações.', err);
+            }
+        };
+
+        // IMPORTANTE: as regras do Firestore exigem que cada documento tenha coupleId.
+        // Também precisamos consultar as coleções com where(coupleId == ...); as regras
+        // do Firestore não funcionam como filtros automáticos de uma coleção inteira.
+        const waitForFirebase = async (timeoutMs = 10000) => {
+            const start = Date.now();
+            while (!(syncReady && db && coupleId && auth?.currentUser)) {
+                if (Date.now() - start >= timeoutMs) return false;
+                await new Promise(resolve => setTimeout(resolve, 150));
+            }
+            return true;
+        };
+
+        const syncItem = async (name, item) => {
+            const ready = await waitForFirebase();
+            if (!ready) {
+                console.warn(`Firebase ainda não está pronto para salvar ${name}.`);
+                return false;
+            }
+            const safeItem = cleanFirestoreObject({ ...item, id: docId(item), coupleId });
+            try {
+                await setDoc(doc(db, 'casais', coupleId, name, safeItem.id), safeItem, { merge: true });
+                return true;
+            } catch (err) {
+                console.error(`Erro ao salvar ${name} no Firestore:`, err);
+                return false;
+            }
+        };
+
+        const syncArrayCollection = async (name, data) => {
+            const list = Array.isArray(data) ? data : [];
+            const results = await Promise.all(list.map(item => syncItem(name, item)));
+            remoteCache[name] = list.map(item => cleanFirestoreObject({ ...item, id: docId(item), coupleId }));
+            if (results.length && results.every(Boolean)) {
+                console.log(`✅ ${name}: ${results.length} documento(s) sincronizado(s).`);
+            }
+            return results;
+        };
+
+        const syncDeleteItem = async (name, id) => {
+            const ready = await waitForFirebase();
+            if (!ready || !id) return false;
+            try {
+                await deleteDoc(doc(db, 'casais', coupleId, name, String(id)));
+                console.log(`🗑️ ${name}/${id} removido do Firestore.`);
+                return true;
+            } catch (err) {
+                console.error(`Erro ao excluir ${name}/${id} no Firestore:`, err);
+                return false;
+            }
+        };
+
+        const replaceLocalCollection = (name, data) => {
+            const list = Array.isArray(data) ? data : [];
+            remoteCache[name] = list;
+            if (name === 'mensagens') {
+                localStorage.setItem('cantinho_msgs', JSON.stringify(list));
+                renderMessages(list);
+            } else if (name === 'fotos') {
+                localStorage.setItem('cantinho_photos', JSON.stringify(list));
+                renderPhotos(list);
+            } else if (name === 'desejos') {
+                localStorage.setItem('cantinho_wishes', JSON.stringify(list));
+                renderWishes();
+            } else if (name === 'datas') {
+                localStorage.setItem('cantinho_dates', JSON.stringify(list));
+                renderDates();
+            } else if (name === 'planos') {
+                localStorage.setItem('cantinho_plans', JSON.stringify(list));
+                renderPlans();
+            } else if (name === 'desafios') {
+                localStorage.setItem('cantinho_challenges', JSON.stringify(list));
+                localChallenges = list;
+                renderChallengesUI();
+            }
+        };
+
+        const listenToCollection = (name) => {
+            if (!db || !coupleId) return;
+            const safeQuery = query(getCoupleCollection(name), where('coupleId', '==', coupleId));
+            const unsub = onSnapshot(safeQuery, (snapshot) => {
+                const data = snapshot.docs.map(d => d.data()).filter(item => item && item.coupleId === coupleId);
+                if (name === 'mensagens') {
+                    data.sort((a, b) => Number(a.timestamp || a.updatedAt || 0) - Number(b.timestamp || b.updatedAt || 0));
+                } else {
+                    data.sort((a, b) => Number(b.timestamp || b.updatedAt || 0) - Number(a.timestamp || a.updatedAt || 0));
+                }
+                replaceLocalCollection(name, data);
+            }, (err) => console.warn(`Falha ao ouvir ${name}.`, err));
+            syncUnsubscribers.push(unsub);
+        };
+
+        const listenToConfig = () => {
+            if (!db || !coupleId) return;
+            const unsub = onSnapshot(doc(db, 'casais', coupleId, 'config', 'settings'), (snapshot) => {
+                if (!snapshot.exists()) return;
+                const data = snapshot.data() || {};
+                if (data.startDate) {
+                    localStorage.setItem('cantinho_start_date', data.startDate);
+                    updateDaysCounter();
+                }
+                if (data.coverUrl) {
+                    localStorage.setItem('cantinho_cover_url', data.coverUrl);
+                    document.getElementById('hero-cover-img').src = data.coverUrl;
+                    const profileAvatar = document.getElementById('profile-avatar-img');
+                    if (profileAvatar) profileAvatar.src = data.coverUrl;
+                }
+            }, (err) => console.warn('Falha ao ouvir configurações.', err));
+            syncUnsubscribers.push(unsub);
+        };
+
+        const stopSync = () => {
+            syncUnsubscribers.splice(0).forEach(unsub => { try { unsub(); } catch (_) {} });
+            messagesUnsubscribe = null;
+            photosUnsubscribe = null;
+            syncReady = false;
+        };
+
+        const generateCoupleCode = () => {
+            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+            let code = 'NC-';
+            for (let i = 0; i < 6; i++) code += chars[Math.floor(Math.random() * chars.length)];
+            return code;
+        };
+
+        const persistCoupleCodeLabel = () => {
+            const label = document.getElementById('couple-code-label');
+            if (label) label.textContent = coupleId || 'Não conectado';
+        };
+
+        const setFirebaseStatus = (text, ok = true) => {
+            const el = document.getElementById('couple-code-label');
+            if (el && !coupleId) el.textContent = text;
+            console.log(`${ok ? '✅' : '❌'} Firebase: ${text}`);
+        };
+
+        const initializeCouple = async () => {
+            await authReady;
+            if (isOfflineMode || !auth?.currentUser || !db) {
+                console.error('Firebase não está disponível.', { isOfflineMode, user: auth?.currentUser?.uid, db: !!db });
+                syncReady = false;
+                startSync();
+                return;
+            }
+
+            const savedCode = localStorage.getItem('cantinho_couple_id') || '';
+            if (savedCode) {
+                coupleId = savedCode.toUpperCase();
+                const existingSnap = await getDoc(doc(db, 'casais', coupleId));
+                if (existingSnap.exists()) {
+                    coupleCreatedHere = false;
+                } else {
+                    coupleId = '';
+                    localStorage.removeItem('cantinho_couple_id');
+                }
+            }
+
+            if (!coupleId) {
+                // O primeiro aparelho cria o código; o segundo pode entrar com o mesmo código.
+                const useExisting = window.confirm('É o primeiro celular a configurar este casal?\n\nOK = criar um novo código\nCancelar = entrar com um código existente');
+                if (useExisting) {
+                    let created = false;
+                    for (let tries = 0; tries < 5 && !created; tries++) {
+                        const code = generateCoupleCode();
+                        const ref = doc(db, 'casais', code);
+                        const snap = await getDoc(ref);
+                        if (!snap.exists()) {
+                            await setDoc(ref, { coupleId: code, createdAt: Date.now(), createdBy: currentUserId });
+                            coupleId = code;
+                            coupleCreatedHere = true;
+                            created = true;
+                        }
+                    }
+                    if (!coupleId) throw new Error('Não foi possível criar o código do casal.');
+                    localStorage.setItem('cantinho_couple_id', coupleId);
+                    persistCoupleCodeLabel();
+                    setTimeout(() => showModal('Código do casal 💕', `O código de vocês é:
+
+${coupleId}
+
+Envie esse código para o outro aparelho e use a opção de entrar com código existente.`, false), 50);
+                } else {
+                    const code = window.prompt('Digite o código do casal (ex.: NC-ABC123):', '')?.trim().toUpperCase();
+                    if (!code) {
+                        syncReady = false;
+                        startSync();
+                        return;
+                    }
+                    const ref = doc(db, 'casais', code);
+                    const snap = await getDoc(ref);
+                    if (!snap.exists()) {
+                        showModal('Código não encontrado', 'Verifique o código do casal e tente novamente.', false);
+                        syncReady = false;
+                        startSync();
+                        return;
+                    }
+                    coupleId = code;
+                    coupleCreatedHere = false;
+                    localStorage.setItem('cantinho_couple_id', coupleId);
+                    persistCoupleCodeLabel();
+                }
+            } else {
+                persistCoupleCodeLabel();
+            }
+
+            // Só o aparelho que criou o código envia os dados locais existentes para a nuvem.
+            if (coupleCreatedHere) {
+                syncReady = true;
+                await syncSetConfig({ startDate: getStartDate(), coverUrl: getCoverUrl() });
+                void syncArrayCollection('mensagens', getLocalMessages());
+                void syncArrayCollection('fotos', getLocalPhotos());
+                void syncArrayCollection('desejos', getLocalWishes());
+                void syncArrayCollection('datas', getLocalDates());
+                void syncArrayCollection('planos', getLocalPlans());
+                void syncArrayCollection('desafios', localChallenges);
+            }
+
+            syncReady = true;
+            setFirebaseStatus(`Conectado ao casal ${coupleId}`);
+            startSync();
+        };
+
+        const startSync = () => {
+            if (syncReady && db && coupleId) {
+                stopSync();
+                syncReady = true;
+                ['mensagens', 'fotos', 'desejos', 'datas', 'planos', 'desafios'].forEach(listenToCollection);
+                listenToConfig();
+            }
+            renderMessages(getLocalMessages());
+            renderPhotos(getLocalPhotos());
+            renderChallengesUI();
+            renderWishes();
+            renderDates();
+            renderPlans();
+            persistCoupleCodeLabel();
+        };
+
+        window.showCoupleCode = () => {
+            if (!coupleId) {
+                showModal('Código do casal', 'Este aparelho ainda não está conectado a um casal.', false);
+                return;
+            }
+            showModal('Código do casal 💕', `Compartilhe este código com o outro aparelho:
+
+${coupleId}`, false);
+        };
+
+        let localChallenges = JSON.parse(localStorage.getItem('cantinho_challenges') || '[]');
+        let currentCategory = null;
+
+        const saveLocalChallenges = (data) => {
+            localStorage.setItem('cantinho_challenges', JSON.stringify(data));
+            syncArrayCollection('desafios', data);
+        };
+
+        // Populate default challenges if none exist
+        if (localChallenges.length === 0) {
+            localChallenges = [
+                { id: 'def-1', text: 'Preparar um jantar romântico surpresa', category: 'romanticos', isWeekChallenge: true, completed: false, timestamp: Date.now() },
+                { id: 'def-2', text: 'Sair para um date sem usar o celular', category: 'romanticos', isWeekChallenge: false, completed: false, timestamp: Date.now() },
+                { id: 'def-3', text: 'Jogar um jogo de tabuleiro com apostas criativas', category: 'divertidos', isWeekChallenge: false, completed: false, timestamp: Date.now() },
+                { id: 'def-4', text: 'Fazer uma massagem relaxante', category: 'picantes', isWeekChallenge: false, completed: false, timestamp: Date.now() }
+            ];
+            saveLocalChallenges(localChallenges);
+        }
+
+        window.openCategoryView = (catId, catName, catColorClass, iconName) => {
+            currentCategory = catId;
+
+            const mainView = document.getElementById('desafios-main');
+            const catView = document.getElementById('desafios-category');
+            if (!mainView || !catView) return;
+
+            mainView.classList.add('hidden');
+            mainView.classList.remove('flex');
+            mainView.style.display = 'none';
+            mainView.style.pointerEvents = 'none';
+
+            catView.classList.remove('hidden');
+            catView.classList.add('flex');
+            catView.style.display = 'flex';
+            catView.style.pointerEvents = 'auto';
+            catView.style.zIndex = '50';
+
+            const title = document.getElementById('cat-view-title');
+            if (title) title.innerText = catName;
+
+            const iconWrapper = document.getElementById('cat-view-icon-wrapper');
+            if (iconWrapper) {
+                iconWrapper.className = `w-10 h-10 rounded-full flex items-center justify-center border ${catColorClass.bg} ${catColorClass.border}`;
+                iconWrapper.innerHTML = `<i data-lucide="${iconName}" class="w-5 h-5 ${catColorClass.text}"></i>`;
+            }
+
+            renderChallengesUI();
+            if (window.lucide) queueIconRender();
+        };
+
+        window.closeCategoryView = () => {
+            currentCategory = null;
+            const catView = document.getElementById('desafios-category');
+            const mainView = document.getElementById('desafios-main');
+            if (!catView || !mainView) return;
+
+            catView.classList.add('hidden');
+            catView.classList.remove('flex');
+            catView.style.display = 'none';
+            catView.style.pointerEvents = 'none';
+
+            mainView.classList.remove('hidden');
+            mainView.classList.add('flex');
+            mainView.style.display = 'flex';
+            mainView.style.pointerEvents = 'auto';
+            renderChallengesUI();
+        };
+
+        // Category navigation uses explicit listeners so it remains reliable even if inline handlers are affected.
+        const bindChallengeCategory = (elementId, catId, catName, catColorClass, iconName) => {
+            const el = document.getElementById(elementId);
+            if (!el) return;
+            const open = () => window.openCategoryView(catId, catName, catColorClass, iconName);
+            el.addEventListener('click', open);
+            el.addEventListener('keydown', (event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    open();
+                }
+            });
+        };
+
+        bindChallengeCategory('category-romanticos', 'romanticos', 'Românticos', {bg: 'bg-pink-500/20', border: 'border-pink-500/30', text: 'text-pink-400'}, 'heart');
+        bindChallengeCategory('category-divertidos', 'divertidos', 'Divertidos', {bg: 'bg-purple-500/20', border: 'border-purple-500/30', text: 'text-purple-400'}, 'gamepad-2');
+        bindChallengeCategory('category-picantes', 'picantes', 'Picantes', {bg: 'bg-red-500/20', border: 'border-red-500/30', text: 'text-red-400'}, 'flame');
+
+        window.promptAddChallenge = () => {
+            showModal('Novo Desafio', `Adicionar na categoria...`, true, async (inputs) => {
+                const text = inputs[1].value.trim();
+                if (!text) return;
+
+                const newChallenge = {
+                    text: text,
+                    category: currentCategory,
+                    isWeekChallenge: false,
+                    completed: false,
+                    timestamp: Date.now()
+                };
+
+                const tempId = 'local-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8);
+                newChallenge.id = tempId;
+                localChallenges.push(newChallenge);
+                saveLocalChallenges(localChallenges);
+                renderChallengesUI();
+            });
+            
+            setTimeout(() => {
+                const inputsDiv = document.getElementById('modal-inputs');
+                const inputs = inputsDiv.querySelectorAll('input');
+                if(inputs.length > 0) {
+                    inputs[0].style.display = 'none'; 
+                    inputs[1].placeholder = 'Descreva o desafio...';
+                    inputs[1].focus();
+                }
+            }, 50);
+        };
+
+        window.toggleChallengeStatus = (id) => {
+            const ch = localChallenges.find(c => c.id === id);
+            if (!ch) return;
+
+            // Alterna o estado atual. Isso permite marcar E desmarcar
+            // diretamente no mesmo botão, inclusive no Desafio da Semana.
+            ch.completed = !Boolean(ch.completed);
+            saveLocalChallenges(localChallenges);
+            renderChallengesUI();
+        };
+
+        window.promptCompleteWeekChallenge = () => {
+            const wc = localChallenges.find(c => c.isWeekChallenge);
+            if (!wc) {
+                showModal('Ops', 'Nenhum desafio da semana definido.', false);
+                return;
+            }
+            if (wc.completed) return;
+            showModal('Completar Desafio! 🎉', 'Vocês concluíram o desafio da semana?', false, () => {
+                wc.completed = true;
+                saveLocalChallenges(localChallenges);
+                renderChallengesUI();
+                setTimeout(() => showModal('Parabéns! 🎉', 'Vocês concluíram o desafio da semana com sucesso!', false), 330);
+            });
+        };
+
+        window.setAsWeekChallenge = (id) => {
+            const ch = localChallenges.find(c => c.id === id);
+            if(!ch || ch.completed) return;
+
+            // Sempre existe no máximo um Desafio da Semana.
+            localChallenges.forEach(c => c.isWeekChallenge = false);
+            ch.isWeekChallenge = true;
+
+            saveLocalChallenges(localChallenges);
+            renderChallengesUI();
+        };
+
+        // O mesmo botão que marca o desafio como "Desafio da Semana"
+        // também permite desmarcá-lo diretamente na categoria.
+        window.toggleWeekChallenge = (id) => {
+            const ch = localChallenges.find(c => c.id === id);
+            if(!ch) return;
+
+            if(ch.isWeekChallenge) {
+                ch.isWeekChallenge = false;
+            } else {
+                if(ch.completed) return;
+                localChallenges.forEach(c => c.isWeekChallenge = false);
+                ch.isWeekChallenge = true;
+            }
+
+            saveLocalChallenges(localChallenges);
+            renderChallengesUI();
+        };
+
+        window.completeWeekChallenge = async () => {
+            const wc = localChallenges.find(c => c.isWeekChallenge);
+            if (!wc) {
+                showModal('Ops', 'Nenhum desafio da semana definido.', false);
+                return;
+            }
+            wc.completed = true;
+            saveLocalChallenges(localChallenges);
+            renderChallengesUI();
+        };
+
+        window.deleteChallenge = (id) => {
+            showModal('Excluir Desafio', 'Tem certeza que deseja remover este desafio da lista?', false, async () => {
+                localChallenges = localChallenges.filter(c => c.id !== id);
+                saveLocalChallenges(localChallenges);
+                renderChallengesUI();
+                            });
+        };
+
+        window.renderChallengesUI = () => {
+            const wc = localChallenges.find(c => c.isWeekChallenge);
+            const wt = document.getElementById('week-challenge-title');
+            const wcCat = document.getElementById('week-challenge-cat');
+            if(wt && wcCat) {
+                wt.innerText = wc ? wc.text : 'Nenhum desafio definido';
+                wcCat.innerText = wc ? `Categoria: ${wc.category.charAt(0).toUpperCase() + wc.category.slice(1)}${wc.completed ? ' • Concluído 🎉' : ''}` : 'Acesse uma categoria e marque um desafio.';
+                wt.classList.add('safe-text');
+                wt.style.overflowWrap = 'anywhere';
+                wt.style.wordBreak = 'break-word';
+            }
+
+            const weekAction = document.getElementById('week-challenge-action');
+            if (weekAction) {
+                weekAction.disabled = !wc || !!wc.completed;
+                weekAction.classList.toggle('opacity-50', !wc || !!wc.completed);
+                weekAction.classList.toggle('cursor-not-allowed', !wc || !!wc.completed);
+                weekAction.innerHTML = wc && wc.completed
+                    ? '<i data-lucide="check-circle-2" class="w-5 h-5"></i> Desafio Concluído 🎉'
+                    : '<i data-lucide="check-circle-2" class="w-5 h-5"></i> Concluir Desafio';
+            }
+
+            ['romanticos', 'divertidos', 'picantes'].forEach(cat => {
+                const el = document.getElementById(`count-${cat}`);
+                if(el) {
+                    const count = localChallenges.filter(c => c.category === cat && !c.completed).length;
+                    el.innerText = `${count} desafio${count === 1 ? '' : 's'} não concluído${count === 1 ? '' : 's'}`;
+                }
+            });
+
+            if(currentCategory) {
+                const list = document.getElementById('category-challenges-list');
+                if(!list) return;
+                
+                list.innerHTML = '';
+                const cats = localChallenges.filter(c => c.category === currentCategory);
+                cats.sort((a, b) => a.completed - b.completed || b.timestamp - a.timestamp);
+                
+                if(cats.length === 0) {
+                    list.innerHTML = '<div class="text-center text-white/50 py-10 font-medium">Nenhum desafio aqui ainda. Adicione um!</div>';
+                } else {
+                    cats.forEach(c => {
+                        const div = document.createElement('div');
+                        div.className = `liquid-glass p-4 rounded-[20px] flex items-center gap-3 transition-opacity ${c.completed ? 'opacity-50' : ''}`;
+                        div.innerHTML = `
+                            <button type="button" onclick="event.stopPropagation(); toggleChallengeStatus('${c.id}')" class="w-6 h-6 rounded-full border-2 ${c.completed ? 'bg-pink-500 border-pink-500' : 'border-white/40'} flex items-center justify-center shrink-0 transition-colors cursor-pointer active:scale-90" title="${c.completed ? 'Desmarcar conclusão' : 'Marcar como concluído'}">
+                                ${c.completed ? '<i data-lucide="check" class="w-4 h-4 text-white"></i>' : ''}
+                            </button>
+                            <p class="flex-1 min-w-0 text-sm font-medium safe-text ${c.completed ? 'line-through text-white/60' : 'text-white'}">${escapeHtml(c.text)}</p>
+                            ${!c.completed && !c.isWeekChallenge ? `<button onclick="setAsWeekChallenge('${c.id}')" class="w-8 h-8 rounded-full liquid-glass-heavy flex items-center justify-center hover:bg-orange-500/30 text-orange-400 active:scale-90 transition-all shrink-0" title="Marcar como Desafio da Semana"><i data-lucide="star" class="w-4 h-4"></i></button>` : ''}
+                            ${c.isWeekChallenge ? `<button type="button" onclick="event.stopPropagation(); toggleWeekChallenge('${c.id}')" class="w-8 h-8 rounded-full bg-orange-500/20 border border-orange-500/30 flex items-center justify-center shrink-0 hover:bg-orange-500/35 active:scale-90 transition-all cursor-pointer" title="Desmarcar como Desafio da Semana"><i data-lucide="award" class="w-4 h-4 text-orange-400"></i></button>` : ''}
+                            <button onclick="deleteChallenge('${c.id}')" class="w-8 h-8 rounded-full liquid-glass flex items-center justify-center hover:bg-red-500/30 text-red-400 active:scale-90 transition-all shrink-0" title="Excluir Desafio">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        `;
+                        list.appendChild(div);
+                    });
+                }
+                queueIconRender();
+            }
+        };
+
+        const customModal = document.getElementById('custom-modal');
+        const modalContent = document.getElementById('modal-content-box');
+        const modalTitle = document.getElementById('modal-title');
+        const modalDesc = document.getElementById('modal-desc');
+        const modalInputs = document.getElementById('modal-inputs');
+        const btnCancel = document.getElementById('modal-cancel');
+        const btnConfirm = document.getElementById('modal-confirm');
+        
+        let modalConfirmCallback = null;
+
+        const showModal = (title, desc, hasInputs = false, onConfirm = null) => {
+            modalTitle.innerText = title;
+            modalDesc.innerText = desc;
+            modalInputs.innerHTML = '';
+            
+            modalConfirmCallback = onConfirm;
+
+            if (hasInputs) {
+                modalInputs.classList.remove('hidden');
+                modalInputs.classList.add('flex');
+                
+                const inputUrl = document.createElement('input');
+                inputUrl.type = 'text';
+                inputUrl.placeholder = 'URL (opcional)';
+                inputUrl.className = 'w-full bg-black/20 border border-white/20 rounded-xl px-4 py-3.5 text-[15px] text-white outline-none focus:border-pink-400 transition-colors shadow-inner placeholder-white/40 font-medium';
+                
+                const inputCaption = document.createElement('input');
+                inputCaption.type = 'text';
+                inputCaption.placeholder = 'Escreva uma legenda...';
+                inputCaption.className = 'w-full bg-black/20 border border-white/20 rounded-xl px-4 py-3.5 text-[15px] text-white outline-none focus:border-pink-400 transition-colors shadow-inner placeholder-white/40 font-medium';
+                
+                modalInputs.appendChild(inputUrl);
+                modalInputs.appendChild(inputCaption);
+            } else {
+                modalInputs.classList.add('hidden');
+                modalInputs.classList.remove('flex');
+            }
+
+            customModal.classList.remove('hidden');
+            void customModal.offsetWidth;
+            customModal.classList.remove('opacity-0');
+            modalContent.classList.remove('scale-95');
+        };
+
+        btnConfirm.onclick = () => {
+            if (modalConfirmCallback) {
+                const inputs = modalInputs.querySelectorAll('input');
+                modalConfirmCallback(inputs);
+            }
+            closeModal();
+        };
+
+        const closeModal = () => {
+            customModal.classList.add('opacity-0');
+            modalContent.classList.add('scale-95');
+            setTimeout(() => {
+                customModal.classList.add('hidden');
+                modalConfirmCallback = null;
+            }, 300);
+        };
+
+        window.showModal = showModal;
+        window.closeModal = closeModal;
+
+        btnCancel.addEventListener('click', closeModal);
+        document.getElementById('modal-backdrop').addEventListener('click', closeModal);
+
+        // Inicializa a conta anônima + código do casal depois que toda a interface foi criada.
+        setTimeout(() => {
+            initializeCouple().catch(err => {
+                console.error('Falha ao inicializar o casal:', err);
+                isOfflineMode = true;
+                startSync();
+                showModal('Modo local', 'Não foi possível conectar ao Firebase agora. O aplicativo continuará funcionando neste aparelho.', false);
+            });
+        }, 80);
+    </script>
+</body>
+</html>
