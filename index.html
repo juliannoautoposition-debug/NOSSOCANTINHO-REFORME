@@ -2169,6 +2169,29 @@
             showModal('Sucesso! ✨', 'Foto de capa e perfil atualizadas com sucesso!', false);
         };
 
+        // --- Fila de notificações push automáticas ---
+        // O HTML apenas cria a fila. O envio real é feito pelo GitHub Actions,
+        // usando a chave privada do Firebase guardada como secret no GitHub.
+        const queuePushNotification = async (title, body, feature = 'home') => {
+            if (!db || !auth?.currentUser || !coupleId || !syncReady) return false;
+            try {
+                await addDoc(collection(db, 'casais', coupleId, 'pushQueue'), {
+                    coupleId,
+                    senderId: auth.currentUser.uid,
+                    title: String(title || 'Nosso Cantinho ❤️').slice(0, 100),
+                    body: String(body || 'Você recebeu uma nova atualização.').slice(0, 240),
+                    feature: String(feature || 'home'),
+                    status: 'pending',
+                    createdAt: Date.now()
+                });
+                console.log('📨 Notificação adicionada à fila:', title);
+                return true;
+            } catch (err) {
+                console.warn('Não foi possível criar a fila de notificação:', err);
+                return false;
+            }
+        };
+
         const getLocalMessages = () => JSON.parse(localStorage.getItem('cantinho_msgs') || '[]');
         const saveLocalMessage = (msg) => {
             const msgs = getLocalMessages();
@@ -2182,6 +2205,11 @@
             }
             renderMessages(msgs);
             syncArrayCollection('mensagens', msgs);
+            void queuePushNotification(
+                msg.type === 'audio' ? 'Novo áudio 💕' : 'Nova mensagem 💬',
+                msg.type === 'audio' ? 'Você recebeu um novo áudio no Whispers.' : 'Você recebeu uma nova mensagem no Whispers.',
+                'chat'
+            );
             window.addAppNotification(msg.type === 'audio' ? 'Novo áudio' : 'Nova mensagem', msg.type === 'audio' ? 'Um áudio foi enviado no Whispers.' : 'Uma nova mensagem foi enviada no Whispers.', msg.type === 'audio' ? 'mic' : 'message-circle');
         };
 
@@ -2203,6 +2231,7 @@
             }
             renderPhotos(photos);
             syncArrayCollection('fotos', photos);
+            void queuePushNotification('Nova memória 📸', 'Uma foto foi adicionada ou alterada no Memories.', 'photos');
             window.addAppNotification('Memories atualizadas','Uma foto foi adicionada ou alterada.','image');
         };
 
@@ -2613,7 +2642,12 @@
             try { return JSON.parse(localStorage.getItem('cantinho_wishes') || '[]'); }
             catch (e) { return []; }
         };
-        const saveLocalWishes = (data) => { localStorage.setItem('cantinho_wishes', JSON.stringify(data)); syncArrayCollection('desejos', data); window.addAppNotification('Desejos atualizados','A lista de desejos foi alterada.','star'); };
+        const saveLocalWishes = (data) => {
+            localStorage.setItem('cantinho_wishes', JSON.stringify(data));
+            syncArrayCollection('desejos', data);
+            void queuePushNotification('Desejos atualizados ⭐', 'A lista de desejos foi alterada.', 'desejos');
+            window.addAppNotification('Desejos atualizados','A lista de desejos foi alterada.','star');
+        };
 
         const getWishLevel = (item) => Math.min(5, Math.max(1, Number(item.level) || 3));
 
@@ -2744,9 +2778,19 @@
 
         // --- Datas Importantes / Planos (Firebase + cache local) ---
         const getLocalDates = () => JSON.parse(localStorage.getItem('cantinho_dates') || '[]');
-        const saveLocalDates = (data) => { localStorage.setItem('cantinho_dates', JSON.stringify(data)); syncArrayCollection('datas', data); window.addAppNotification('Datas atualizadas','A linha do tempo recebeu uma alteração.','calendar-heart'); };
+        const saveLocalDates = (data) => {
+            localStorage.setItem('cantinho_dates', JSON.stringify(data));
+            syncArrayCollection('datas', data);
+            void queuePushNotification('Datas atualizadas 📅', 'A linha do tempo recebeu uma alteração.', 'datas');
+            window.addAppNotification('Datas atualizadas','A linha do tempo recebeu uma alteração.','calendar-heart');
+        };
         const getLocalPlans = () => JSON.parse(localStorage.getItem('cantinho_plans') || '[]');
-        const saveLocalPlans = (data) => { localStorage.setItem('cantinho_plans', JSON.stringify(data)); syncArrayCollection('planos', data); window.addAppNotification('Planos atualizados','Os planos do casal foram alterados.','map'); };
+        const saveLocalPlans = (data) => {
+            localStorage.setItem('cantinho_plans', JSON.stringify(data));
+            syncArrayCollection('planos', data);
+            void queuePushNotification('Planos atualizados 🗺️', 'Os planos do casal foram alterados.', 'planos');
+            window.addAppNotification('Planos atualizados','Os planos do casal foram alterados.','map');
+        };
 
 
         window.renderDates = () => {
@@ -3570,6 +3614,7 @@ ${coupleId}`, false);
         const saveLocalChallenges = (data) => {
             localStorage.setItem('cantinho_challenges', JSON.stringify(data));
             syncArrayCollection('desafios', data);
+            void queuePushNotification('Desafios atualizados 🔥', 'Uma alteração foi feita nos desafios.', 'desafios');
             window.addAppNotification('Desafios atualizados','Uma alteração foi feita nos desafios.','flame');
         };
 
