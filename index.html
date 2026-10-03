@@ -64,9 +64,17 @@
             }
         }
 
-        /* Hide Scrollbar */
-        ::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
+        /* Rolagem visível e funcional */
+        * { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,.42) transparent; }
+        ::-webkit-scrollbar { width: 7px; height: 7px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,.42); border-radius: 999px; border: 2px solid transparent; background-clip: padding-box; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,.62); border: 1px solid transparent; background-clip: padding-box; }
+        .no-scrollbar { -ms-overflow-style: auto; scrollbar-width: thin; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
+        .no-scrollbar::-webkit-scrollbar { display: block; width: 7px; }
+        .no-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .no-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,.42); border-radius: 999px; }
+
 
         /* Rolagem confortável dentro das telas do app */
         #screens-container .screen-active,
@@ -98,6 +106,25 @@
             overscroll-behavior-y: contain;
             scroll-behavior: smooth;
         }
+
+        /* Todas as telas ocupam a área disponível e rolam independentemente do cabeçalho/rodapé. */
+        #screens-container { min-height: 0 !important; height: 100% !important; overflow: hidden !important; }
+        #screens-container > .screen-active {
+            min-height: 0 !important;
+            height: 100% !important;
+            max-height: 100% !important;
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
+            -webkit-overflow-scrolling: touch !important;
+            touch-action: pan-y !important;
+            overscroll-behavior-y: contain !important;
+            scrollbar-width: thin !important;
+        }
+        #screens-container > .screen-active::-webkit-scrollbar { display: block !important; width: 7px !important; }
+        #screens-container > .screen-active::-webkit-scrollbar-track { background: transparent !important; }
+        #screens-container > .screen-active::-webkit-scrollbar-thumb { background: rgba(255,255,255,.42) !important; border-radius: 999px !important; }
+        body.theme-light #screens-container > .screen-active::-webkit-scrollbar-thumb { background: rgba(15,23,42,.28) !important; }
+
         button, [role="button"] { touch-action: manipulation; }
 
         /* Fundo do app: limitado ao retângulo real do aplicativo.
@@ -622,6 +649,26 @@
 
             #custom-modal {
                 padding: 16px !important;
+            }
+
+            #screens-container > .screen-active {
+                display: flex !important;
+                height: 100% !important;
+                min-height: 0 !important;
+                overflow-y: scroll !important;
+                -webkit-overflow-scrolling: touch !important;
+                touch-action: pan-y !important;
+                scrollbar-width: thin !important;
+            }
+
+            #screens-container > .screen-active::-webkit-scrollbar {
+                display: block !important;
+                width: 7px !important;
+            }
+
+            #screens-container > .screen-active::-webkit-scrollbar-thumb {
+                background: rgba(255,255,255,.48) !important;
+                border-radius: 999px !important;
             }
 
             #modal-content-box {
