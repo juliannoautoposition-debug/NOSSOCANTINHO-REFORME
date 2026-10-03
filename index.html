@@ -67,6 +67,37 @@
         /* Hide Scrollbar */
         ::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
+
+        /* Rolagem confortável dentro das telas do app */
+        #screens-container .screen-active,
+        #screens-container [id="chat-messages"],
+        #screens-container [id="desafios-main"],
+        #screens-container [id="notifications-list"],
+        #appearance-panel,
+        #modal-content-box {
+            overscroll-behavior-y: contain;
+            -webkit-overflow-scrolling: touch;
+            scroll-behavior: smooth;
+            touch-action: pan-y;
+        }
+
+        /* Garante que telas com muito conteúdo possam rolar até o final */
+        #screen-home,
+        #screen-photos,
+        #screen-desejos,
+        #screen-datas,
+        #screen-planos,
+        #screen-settings,
+        #screen-chat,
+        #screen-desafios,
+        #screen-quiz {
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
+            -webkit-overflow-scrolling: touch;
+            touch-action: pan-y;
+            overscroll-behavior-y: contain;
+            scroll-behavior: smooth;
+        }
         button, [role="button"] { touch-action: manipulation; }
 
         /* Fundo do app: limitado ao retângulo real do aplicativo.
