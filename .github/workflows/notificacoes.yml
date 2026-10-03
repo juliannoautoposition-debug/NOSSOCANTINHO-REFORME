@@ -2,8 +2,9 @@ name: Enviar notificações do Nosso Cantinho
 
 on:
   workflow_dispatch:
+
   schedule:
-    - cron: "*/5 * * * *"
+    - cron: "2,7,12,17,22,27,32,37,42,47,52,57 * * * *"
 
 jobs:
   enviar-notificacoes:
