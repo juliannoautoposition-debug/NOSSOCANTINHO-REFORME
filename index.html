@@ -127,6 +127,60 @@
 
         button, [role="button"] { touch-action: manipulation; }
 
+
+        /* PERFIL/CONFIGURAÇÕES: rolagem isolada e independente */
+        #screen-settings {
+            position: absolute !important;
+            inset: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            min-height: 0 !important;
+            max-height: 100% !important;
+            padding: 0 !important;
+            overflow: hidden !important;
+            display: block !important;
+            pointer-events: auto !important;
+        }
+        #settings-scroll-content {
+            position: absolute !important;
+            inset: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            min-height: 0 !important;
+            max-height: 100% !important;
+            box-sizing: border-box !important;
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
+            -webkit-overflow-scrolling: touch !important;
+            overscroll-behavior-y: contain !important;
+            touch-action: pan-y !important;
+            scrollbar-width: auto !important;
+            pointer-events: auto !important;
+        }
+        #settings-scroll-content::-webkit-scrollbar {
+            display: block !important;
+            width: 10px !important;
+        }
+        #settings-scroll-content::-webkit-scrollbar-track {
+            background: transparent !important;
+        }
+        #settings-scroll-content::-webkit-scrollbar-thumb {
+            display: block !important;
+            background: rgba(255,255,255,.65) !important;
+            border-radius: 999px !important;
+            border: 2px solid transparent !important;
+            background-clip: padding-box !important;
+        }
+        body.theme-light #settings-scroll-content::-webkit-scrollbar-thumb {
+            background: rgba(15,23,42,.42) !important;
+        }
+        @media (max-width: 640px) {
+            #settings-scroll-content {
+                overflow-y: scroll !important;
+                scrollbar-width: thin !important;
+            }
+        }
+
         /* Fundo do app: limitado ao retângulo real do aplicativo.
            As bolas usam porcentagem do próprio app, então não escapam da tela no celular. */
         .blob-container {
@@ -638,6 +692,44 @@
                 padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 96px) !important;
             }
 
+            /* Perfil/Configurações: container de rolagem próprio */
+            #screen-settings.screen-active {
+                display: block !important;
+                position: absolute !important;
+                inset: 0 !important;
+                height: 100% !important;
+                min-height: 0 !important;
+                max-height: 100% !important;
+                overflow-y: auto !important;
+                overflow-x: hidden !important;
+                -webkit-overflow-scrolling: touch !important;
+                touch-action: pan-y !important;
+                overscroll-behavior-y: contain !important;
+                scrollbar-width: thin !important;
+            }
+
+            #screen-settings.screen-active::-webkit-scrollbar {
+                display: block !important;
+                width: 8px !important;
+            }
+
+            #screen-settings.screen-active::-webkit-scrollbar-track {
+                background: transparent !important;
+            }
+
+            #screen-settings.screen-active::-webkit-scrollbar-thumb {
+                background: rgba(255,255,255,.52) !important;
+                border-radius: 999px !important;
+                border: 2px solid transparent !important;
+                background-clip: padding-box !important;
+            }
+
+            body.theme-light #screen-settings.screen-active::-webkit-scrollbar-thumb {
+                background: rgba(15,23,42,.30) !important;
+                border-color: transparent !important;
+                background-clip: padding-box !important;
+            }
+
             #bottom-nav {
                 padding: 8px 10px calc(8px + env(safe-area-inset-bottom, 0px)) !important;
             }
@@ -1101,7 +1193,8 @@
                 </div>
 
                 <!-- Settings Screen -->
-                <div id="screen-settings" class="screen-hidden p-6 pt-[100px] h-full overflow-y-auto no-scrollbar">
+                <div id="screen-settings" class="screen-hidden h-full overflow-hidden">
+                    <div id="settings-scroll-content" class="p-6 pt-[100px] pb-28 min-h-full overflow-y-auto overflow-x-hidden">
                     <div class="flex flex-col items-center mb-10">
                         <div class="relative w-28 h-28 group cursor-pointer" onclick="openProfilePhotoMenu()">
                             <div class="absolute inset-0 rounded-full bg-gradient-to-tr from-indigo-500 to-pink-500 animate-spin" style="animation-duration: 4s;"></div>
@@ -1197,6 +1290,7 @@
                             <i data-lucide="chevron-right" class="w-4 h-4 text-white/30 shrink-0"></i>
                         </div>
                     </div>
+                </div>
                 </div>
 
 
