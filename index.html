@@ -1061,11 +1061,33 @@
                             </div>
                             <i data-lucide="chevron-right" class="w-4 h-4 text-white/30 shrink-0"></i>
                         </div>
-                        <div onclick="window.requestPushNotifications()" class="px-5 py-4 flex items-center justify-between border-b border-white/5 active:bg-white/5 transition-colors cursor-pointer">
-                            <div class="flex items-center gap-4 min-w-0">
-                                <i data-lucide="bell-ring" class="w-5 h-5 text-yellow-300 shrink-0"></i>
-                                <div class="min-w-0"><span class="font-medium block">Notificações do celular</span><span id="push-notification-status" class="text-xs text-white/40 block mt-0.5 truncate">Toque para ativar</span></div>
-                            </div><i data-lucide="chevron-right" class="w-4 h-4 text-white/30 shrink-0"></i>
+                        <div class="px-5 py-4 border-b border-white/5">
+                            <div class="flex items-start justify-between gap-4">
+                                <div class="flex items-center gap-4 min-w-0">
+                                    <i data-lucide="bell-ring" class="w-5 h-5 text-yellow-300 shrink-0"></i>
+                                    <div class="min-w-0">
+                                        <span class="font-medium block">Notificações do casal</span>
+                                        <span id="push-notification-status" class="text-xs text-white/40 block mt-0.5">Toque em ativar para permitir e registrar este dispositivo.</span>
+                                    </div>
+                                </div>
+                                <span id="push-notification-badge" class="text-[10px] px-2 py-1 rounded-full bg-white/5 text-white/40 shrink-0">Desativadas</span>
+                            </div>
+                            <div class="mt-4 grid grid-cols-1 gap-2">
+                                <button type="button" onclick="window.requestPushNotifications()" class="w-full rounded-2xl px-4 py-3 bg-pink-500/15 border border-pink-400/20 flex items-center justify-between active:scale-[0.99] transition-transform">
+                                    <span class="flex items-center gap-3"><i data-lucide="bell-plus" class="w-4 h-4 text-pink-300"></i><span class="font-semibold text-sm">Ativar notificações</span></span>
+                                    <i data-lucide="chevron-right" class="w-4 h-4 text-white/30"></i>
+                                </button>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <div class="rounded-2xl bg-white/5 border border-white/5 px-3 py-3">
+                                        <span class="text-[10px] uppercase tracking-wider text-white/35 block">Casal</span>
+                                        <span id="push-couple-status" class="text-xs text-white/65 block mt-1 truncate">Não conectado</span>
+                                    </div>
+                                    <div class="rounded-2xl bg-white/5 border border-white/5 px-3 py-3">
+                                        <span class="text-[10px] uppercase tracking-wider text-white/35 block">Dispositivo</span>
+                                        <span id="push-device-status" class="text-xs text-white/65 block mt-1 truncate">Aguardando permissão</span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                         <div class="px-5 py-3 border-b border-white/5">
                             <button type="button" onclick="event.stopPropagation(); window.copyFcmToken()" class="w-full flex items-center justify-between gap-3 rounded-2xl px-4 py-3 bg-white/5 border border-white/10 active:scale-[0.99] transition-transform text-left">
@@ -2235,28 +2257,116 @@
             window.addAppNotification('Memories atualizadas','Uma foto foi adicionada ou alterada.','image');
         };
 
-        const updatePushStatus = (text) => { const el=document.getElementById('push-notification-status'); if(el) el.textContent=text; };
+        const updatePushStatus = (text) => {
+            const el=document.getElementById('push-notification-status');
+            if(el) el.textContent=text;
+        };
+        const updatePushUi = (status, badge='Desativadas') => {
+            const badgeEl=document.getElementById('push-notification-badge');
+            const deviceEl=document.getElementById('push-device-status');
+            const coupleEl=document.getElementById('push-couple-status');
+            if (badgeEl) badgeEl.textContent = badge;
+            if (deviceEl) deviceEl.textContent = status;
+            if (coupleEl) coupleEl.textContent = coupleId || 'Não conectado';
+        };
         const savePushToken = async (token) => {
-            if (!token) return;
-            pushToken=token; localStorage.setItem('cantinho_fcm_token',token);
-            if (!db || !auth?.currentUser || !coupleId) return;
-            try { await setDoc(doc(db,'casais',coupleId,'pushTokens',auth.currentUser.uid),{token,userId:auth.currentUser.uid,updatedAt:Date.now(),userAgent:navigator.userAgent.slice(0,300)},{merge:true}); } catch(e){ console.warn('Falha ao salvar token FCM',e); }
+            if (!token) return false;
+            pushToken=token;
+            localStorage.setItem('cantinho_fcm_token',token);
+            if (!db || !auth?.currentUser || !coupleId) {
+                console.warn('Token FCM gerado, mas o casal ainda não está conectado.');
+                updatePushStatus('Token criado; conecte-se ao casal para salvar.');
+                updatePushUi('Casal não conectado', 'Aguardando casal');
+                return false;
+            }
+            try {
+                await setDoc(
+                    doc(db,'casais',coupleId,'pushTokens',auth.currentUser.uid),
+                    {
+                        token,
+                        userId:auth.currentUser.uid,
+                        coupleId,
+                        enabled:true,
+                        updatedAt:Date.now(),
+                        userAgent:navigator.userAgent.slice(0,300)
+                    },
+                    {merge:true}
+                );
+                updatePushStatus('Ativadas e salvas neste casal');
+                updatePushUi('Ativado e salvo', 'Ativadas');
+                console.log('✅ Token FCM salvo no casal:', coupleId);
+                return true;
+            } catch(e) {
+                console.warn('Falha ao salvar token FCM',e);
+                updatePushStatus('Permissão dada, mas não foi possível salvar no casal.');
+                updatePushUi('Erro ao salvar no Firebase', 'Erro');
+                return false;
+            }
         };
         const setupPushMessaging = async (askPermission=false) => {
             try {
-                if (!('Notification' in window) || !('serviceWorker' in navigator)) { updatePushStatus('Navegador sem suporte'); return false; }
-                if (location.protocol !== 'https:' && location.hostname !== 'localhost') { updatePushStatus('Precisa estar em HTTPS'); return false; }
-                if (Notification.permission === 'denied') { updatePushStatus('Bloqueadas pelo navegador'); return false; }
-                if (askPermission && Notification.permission !== 'granted') { const p=await Notification.requestPermission(); if(p!=='granted'){updatePushStatus('Permissão não concedida');return false;} }
-                if (Notification.permission !== 'granted') { updatePushStatus('Toque para ativar'); return false; }
+                if (!('Notification' in window) || !('serviceWorker' in navigator)) {
+                    updatePushStatus('Este navegador não suporta notificações.');
+                    updatePushUi('Navegador sem suporte', 'Indisponível');
+                    return false;
+                }
+                if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
+                    updatePushStatus('Abra o app pelo GitHub Pages (HTTPS).');
+                    updatePushUi('HTTPS necessário', 'Indisponível');
+                    return false;
+                }
+                if (!coupleId) {
+                    updatePushStatus('Conecte-se ao código do casal primeiro.');
+                    updatePushUi('Não conectado ao casal', 'Aguardando casal');
+                    return false;
+                }
+                if (Notification.permission === 'denied') {
+                    updatePushStatus('Permissão bloqueada. Libere as notificações nas configurações do navegador.');
+                    updatePushUi('Permissão bloqueada', 'Bloqueadas');
+                    return false;
+                }
+                // Ao clicar em ATIVAR, sempre solicitamos a permissão quando ela ainda não foi concedida.
+                if (askPermission && Notification.permission !== 'granted') {
+                    updatePushStatus('Pedindo permissão para este dispositivo...');
+                    updatePushUi('Aguardando sua permissão', 'Aguardando');
+                    const permission = await Notification.requestPermission();
+                    if (permission !== 'granted') {
+                        updatePushStatus(permission === 'denied' ? 'Permissão bloqueada pelo navegador.' : 'Permissão não concedida.');
+                        updatePushUi(permission === 'denied' ? 'Permissão bloqueada' : 'Permissão não concedida', 'Desativadas');
+                        return false;
+                    }
+                }
+                if (Notification.permission !== 'granted') {
+                    updatePushStatus('Toque em Ativar notificações para permitir.');
+                    updatePushUi('Aguardando permissão', 'Desativadas');
+                    return false;
+                }
+                updatePushStatus('Registrando este dispositivo...');
+                updatePushUi('Permissão concedida; salvando...', 'Ativando');
                 const registration=await navigator.serviceWorker.register('./firebase-messaging-sw.js');
+                await navigator.serviceWorker.ready;
                 messaging=messaging || getMessaging(app);
                 const token=await getToken(messaging,{vapidKey:FCM_VAPID_KEY,serviceWorkerRegistration:registration});
-                if(!token){updatePushStatus('Não foi possível registrar');return false;}
-                await savePushToken(token); updatePushStatus('Ativadas neste navegador'); return true;
-            } catch(e){ console.warn('FCM Web:',e); updatePushStatus('Configure HTTPS e o Service Worker'); return false; }
+                if(!token){
+                    updatePushStatus('Firebase não gerou o token deste dispositivo.');
+                    updatePushUi('Token não gerado', 'Erro');
+                    return false;
+                }
+                const saved = await savePushToken(token);
+                return saved;
+            } catch(e) {
+                console.warn('FCM Web:',e);
+                updatePushStatus(`Não foi possível ativar: ${e?.message || 'erro desconhecido'}`);
+                updatePushUi('Erro ao registrar', 'Erro');
+                return false;
+            }
         };
-        window.requestPushNotifications = async () => { const ok=await setupPushMessaging(true); if(ok) window.addAppNotification?.('Notificações ativadas','Este navegador está preparado para receber notificações do Nosso Cantinho.','bell-ring',false,'settings'); };
+        window.requestPushNotifications = async () => {
+            const ok=await setupPushMessaging(true);
+            if(ok) {
+                window.addAppNotification?.('Notificações ativadas','Este dispositivo foi salvo no casal e poderá receber as atualizações.','bell-ring',false,'settings');
+            }
+        };
         window.copyFcmToken = async () => {
             try {
                 let token = pushToken || localStorage.getItem('cantinho_fcm_token') || '';
@@ -3455,7 +3565,7 @@
 
             startSync();
             hideCoupleGate();
-            if ('Notification' in window && Notification.permission === 'granted') void setupPushMessaging(false);
+            if ('Notification' in window && Notification.permission === 'granted') void setupPushMessaging(false); else updatePushUi('Aguardando permissão', 'Desativadas');
         };
 
         window.createCoupleFromGate = async () => {
@@ -3564,7 +3674,7 @@
                         setFirebaseStatus(`Conectado ao casal ${coupleId}`);
                         startSync();
                         hideCoupleGate();
-                        if ('Notification' in window && Notification.permission === 'granted') void setupPushMessaging(false);
+                        if ('Notification' in window && Notification.permission === 'granted') void setupPushMessaging(false); else updatePushUi('Aguardando permissão', 'Desativadas');
                         return;
                     }
                 } catch (err) {
