@@ -1067,6 +1067,18 @@
                                 <div class="min-w-0"><span class="font-medium block">Notificações do celular</span><span id="push-notification-status" class="text-xs text-white/40 block mt-0.5 truncate">Toque para ativar</span></div>
                             </div><i data-lucide="chevron-right" class="w-4 h-4 text-white/30 shrink-0"></i>
                         </div>
+                        <div class="px-5 py-3 border-b border-white/5">
+                            <button type="button" onclick="event.stopPropagation(); window.copyFcmToken()" class="w-full flex items-center justify-between gap-3 rounded-2xl px-4 py-3 bg-white/5 border border-white/10 active:scale-[0.99] transition-transform text-left">
+                                <div class="flex items-center gap-3 min-w-0">
+                                    <i data-lucide="copy" class="w-4 h-4 text-pink-300 shrink-0"></i>
+                                    <div class="min-w-0">
+                                        <span class="font-medium block text-sm">Copiar token FCM</span>
+                                        <span id="fcm-token-status" class="text-[11px] text-white/35 block mt-0.5 truncate">Use para testar uma notificação no Firebase</span>
+                                    </div>
+                                </div>
+                                <i data-lucide="chevron-right" class="w-4 h-4 text-white/25 shrink-0"></i>
+                            </button>
+                        </div>
                         <div class="px-5 py-4 flex items-center justify-between border-b border-white/5 active:bg-white/5 transition-colors cursor-pointer">
                             <div class="flex items-center gap-4">
                                 <i data-lucide="shield" class="w-5 h-5 text-indigo-400"></i>
@@ -2216,6 +2228,30 @@
             } catch(e){ console.warn('FCM Web:',e); updatePushStatus('Configure HTTPS e o Service Worker'); return false; }
         };
         window.requestPushNotifications = async () => { const ok=await setupPushMessaging(true); if(ok) window.addAppNotification?.('Notificações ativadas','Este navegador está preparado para receber notificações do Nosso Cantinho.','bell-ring',false,'settings'); };
+        window.copyFcmToken = async () => {
+            try {
+                let token = pushToken || localStorage.getItem('cantinho_fcm_token') || '';
+                if (!token) {
+                    const ok = await setupPushMessaging(true);
+                    token = pushToken || localStorage.getItem('cantinho_fcm_token') || '';
+                    if (!ok || !token) {
+                        const status = document.getElementById('fcm-token-status');
+                        if (status) status.textContent = 'Ative as notificações primeiro';
+                        return;
+                    }
+                }
+                await navigator.clipboard.writeText(token);
+                const status = document.getElementById('fcm-token-status');
+                if (status) status.textContent = 'Token copiado! Cole no teste do Firebase.';
+                window.addAppNotification?.('Token FCM copiado','Agora você pode colar o token no teste do Firebase.','copy',false,'settings');
+            } catch (e) {
+                console.warn('Falha ao copiar token FCM', e);
+                const token = pushToken || localStorage.getItem('cantinho_fcm_token') || '';
+                const status = document.getElementById('fcm-token-status');
+                if (status) status.textContent = token ? 'Não foi possível copiar automaticamente' : 'Ative as notificações primeiro';
+                if (token) window.prompt('Copie seu token FCM:', token);
+            }
+        };
         window.enterAnonymousAuth = async () => {
             const status=document.getElementById('anonymous-auth-status'); if(status) status.textContent='Autenticando como convidado...';
             try { if(!auth?.currentUser) await signInAnonymously(auth); if(status) status.textContent='Autenticação concluída. ❤️'; document.getElementById('anonymous-auth-step')?.classList.add('hidden'); document.getElementById('couple-gate-home')?.classList.remove('hidden'); queueIconRender(); }
